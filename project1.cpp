@@ -29,28 +29,27 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-		int n=atoi(argv[1]);
-		double x_end=1;		   // endpoint of x-array
-		double h = x_end / (n-1);
+		int n=atoi(argv[1]);		   // endpoint of x-array
+		double h = 1. / (n+1);
 
 		// Allocate memory to arrays used
 		double *x, *f_mark, *u, *b, *v, *f_tilde, *b_tilde;
 		int *a, *c;
-		x = vec_mem(n); f_mark = vec_mem(n); u = vec_mem(n);
-		b = vec_mem(n); v = vec_mem(n); f_tilde = vec_mem(n); b_tilde = vec_mem(n);
-		a = vec_mem_int(n-1); c = vec_mem_int(n-1);		// lower and upper diagonals
+		x = vec_mem(n+2); f_mark = vec_mem(n+2); u = vec_mem(n+2);
+		b = vec_mem(n+2); f_tilde = vec_mem(n+2); b_tilde = vec_mem(n+2);
+		a = vec_mem_int(n+1); c = vec_mem_int(n+1);		// lower and upper diagonals
+		v = vec_mem(n+2);															// unknown solution
 
-		for (int i=0; i < n ; i++)		// create x-array
+		for (int i=0; i < n+2 ; i++)		// create x-array
 		{
-			x[i] = x_end * h * i;
+			x[i] = h * i;
 			f_mark[i] = f_mark__(x[i], h);
 			u[i] = u__(x[i]);						// analytical solution
 		//	printf ("x = %g, f_mark = %g \n", x[i], f_mark[i]);
 		}
-
 		// Set boundary conditions
 		v[0] = 0;
-		v[n-1] = 0;
+		v[n+1] = 0;
 
 		// Fill lower and upper diagonals
 		for (int i=0; i < n-1; i++)
@@ -59,7 +58,7 @@ int main(int argc, char* argv[])
 			c[i] = -1;
 		}
 		// Fill main diagonal
-		for (int i=0; i < n; i++)
+		for (int i=0; i < n+1; i++)
 		{
 			b[i] = 2;
 		}
@@ -68,28 +67,35 @@ int main(int argc, char* argv[])
 		// tilde values are not used until index i = 1
 		f_tilde[0] = f_mark[0];
 		b_tilde[0] = b[0];
+		b_tilde[1] = b[0];
+
 		// Main algorithm: perform forward and backward substitution
-		for (int i=1; i < n; i++)
+		for (int i=2; i < n+3; i++)
 		{
 			b_tilde[i] = b[i] - a[i-1]/b_tilde[i-1] * c[i-1];
 	    f_tilde[i] = f_mark[i] - a[i-1]/b_tilde[i-1] * f_tilde[i-1];
+	//		cout << i << ' ' << b_tilde[i] << endl;
 		//	printf ("b_tilde[%i] = %g, f_tilde[%i] = %g \n", i, b_tilde[i], i, f_tilde[i]);
 		}
 
-		for (int i=n-2; i > 0; i--)
+		for (int i=n; i > 0; i--)
 		{
 			v[i] = (f_tilde[i] - v[i+1]*c[i])/b_tilde[i];
+			cout << i << ' ' << b_tilde[i] << endl;
 		}
+		//cout << v[n] << endl;
 
 		// Write arrays x, u and v to file
 		ofstream myfile;
 		char *project1_b_data;
 		myfile.open ("project1_b_data.txt");
 
-		for (int i=0; i < n; i++)
+		for (int i=0; i < n+3; i++)
 		{
-			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << '\n' << endl;
+			cout << i << ' ' << b_tilde[i] << endl;
+			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
 		}
+		cout << v[n+1] << endl;
 		myfile.close();
 		printf ("Solution computed for n = %i. Results written to file.\n", n);
 
