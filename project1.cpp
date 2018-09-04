@@ -8,17 +8,37 @@
 //f_mark = h**2 f
 inline double f_mark__(double x, double h) {return pow(h,2)*100.0*exp(-10.0*x);}
 inline double u__(double x)	{return (1 - (1 - exp(-10))*x - exp(-10*x));}
+/*
+Function that creates an array of size 'm' and allocates memory for indices of type double
+*/
+double* vec_mem(int m)
+{
+	double *v = new double[m];
+	return v;
+}
+/*
+Integer version of function above
+*/
+int* vec_mem_int(int m)
+{
+	int *v = new int[m];
+	return v;
+}
+
 using namespace std;
 
 int main(int argc, char* argv[])
 {
 		int n=atoi(argv[1]);
 		double x_end=1;		   // endpoint of x-array
-		double x[n];			   // vector to hold x-values
-		double f_mark[n]; double u[n];
-		//double *p;				 // pointer to  double float
-		//p = &x[0];
 		double h = x_end / (n-1);
+
+		// Allocate memory to arrays used
+		double *x, *f_mark, *u, *b, *v, *f_tilde, *b_tilde;
+		int *a, *c;
+		x = vec_mem(n); f_mark = vec_mem(n); u = vec_mem(n);
+		b = vec_mem(n); v = vec_mem(n); f_tilde = vec_mem(n); b_tilde = vec_mem(n);
+		a = vec_mem_int(n-1); c = vec_mem_int(n-1);		// lower and upper diagonals
 
 		for (int i=0; i < n ; i++)		// create x-array
 		{
@@ -28,8 +48,7 @@ int main(int argc, char* argv[])
 		//	printf ("x = %g, f_mark = %g \n", x[i], f_mark[i]);
 		}
 
-		int a[n-1]; int c[n-1];	        // lower and upper diagonals
-		double b[n];	 double v[n];							// diagonal and LHS vector
+		// Set boundary conditions
 		v[0] = 0;
 		v[n-1] = 0;
 
@@ -39,15 +58,16 @@ int main(int argc, char* argv[])
 			a[i] = -1;
 			c[i] = -1;
 		}
-
-		// Initialize b_tilde and f_tilde, fill with b and f_mark values initially
-		double b_tilde[n]; double f_tilde[n];
+		// Fill main diagonal
 		for (int i=0; i < n; i++)
 		{
 			b[i] = 2;
-			f_tilde[i] = f_mark[i];
-			b_tilde[i] = b[i];
 		}
+
+		// Set initial f_tilde and b_tilde values to initial f and b values, since
+		// tilde values are not used until index i = 1
+		f_tilde[0] = f_mark[0];
+		b_tilde[0] = b[0];
 		// Main algorithm: perform forward and backward substitution
 		for (int i=1; i < n; i++)
 		{
@@ -71,7 +91,6 @@ int main(int argc, char* argv[])
 			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << '\n' << endl;
 		}
 		myfile.close();
-
 		printf ("Solution computed for n = %i. Results written to file.\n", n);
 
 		return 0;
