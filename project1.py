@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-n = 10
+n = 100000
 x = np.linspace(0,1,n)
 h = x[-1]/float(n-1)
 print (x, h)
@@ -33,9 +33,6 @@ for i in range(1, n):
 
 for i in range(n-2, 0, -1):
     v[i] = (f_tilde[i] - v[i+1]*c[i])/b_tilde[i]
-
-for i in range(n):
-    print (x[i], u(x[i]), v[i])
 
 plt.plot(x, v)
 plt.plot(x, u(x))

@@ -25,13 +25,13 @@ int main(int argc, char* argv[])
 			x[i] = x_end * h * i;
 			f_mark[i] = f_mark__(x[i], h);
 			u[i] = u__(x[i]);						// analytical solution
-			printf ("x = %g, f_mark = %g \n", x[i], f_mark[i]);
+		//	printf ("x = %g, f_mark = %g \n", x[i], f_mark[i]);
 		}
 
 		int a[n-1]; int c[n-1];	        // lower and upper diagonals
 		double b[n];	 double v[n];							// diagonal and LHS vector
 		v[0] = 0;
-		v[n] = 0;
+		v[n-1] = 0;
 
 		// Fill lower and upper diagonals
 		for (int i=0; i < n-1; i++)
@@ -53,16 +53,15 @@ int main(int argc, char* argv[])
 		{
 			b_tilde[i] = b[i] - a[i-1]/b_tilde[i-1] * c[i-1];
 	    f_tilde[i] = f_mark[i] - a[i-1]/b_tilde[i-1] * f_tilde[i-1];
-			printf ("b_tilde[%i] = %g, f_tilde[%i] = %g \n", i, b_tilde[i], i, f_tilde[i]);
+		//	printf ("b_tilde[%i] = %g, f_tilde[%i] = %g \n", i, b_tilde[i], i, f_tilde[i]);
 		}
 
 		for (int i=n-2; i > 0; i--)
 		{
 			v[i] = (f_tilde[i] - v[i+1]*c[i])/b_tilde[i];
-			cout << v[i] << endl;
 		}
 
-		// Write to file
+		// Write arrays x, u and v to file
 		ofstream myfile;
 		char *project1_b_data;
 		myfile.open ("project1_b_data.txt");
@@ -72,6 +71,8 @@ int main(int argc, char* argv[])
 			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << '\n' << endl;
 		}
 		myfile.close();
+
+		printf ("Solution computed for n = %i. Results written to file.\n", n);
 
 		return 0;
 }
