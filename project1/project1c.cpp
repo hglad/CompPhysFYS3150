@@ -37,15 +37,13 @@ int main(int argc, char* argv[])
 		clock_t t;
 		t = clock();
 
-		int n=atoi(argv[1]);		   // endpoint of x-array
+		int n=atoi(argv[1]);
 		double h = 1. / (n+1);
 
 		// Allocate memory to arrays used
 		double *x, *f_mark, *u, *b, *v, *f_tilde, *b_tilde;
-		int *a, *c;
 		x = vec_mem(n+2); f_mark = vec_mem(n+2); u = vec_mem(n+2);
 		b = vec_mem(n+2); f_tilde = vec_mem(n+2); b_tilde = vec_mem(n+2);
-		a = vec_mem_int(n+1); c = vec_mem_int(n+1);		// lower and upper diagonals
 		v = vec_mem(n+2);															// unknown solution
 
 		for (int i=0; i < n+2 ; i++)		// create x-array
@@ -98,7 +96,6 @@ int main(int argc, char* argv[])
 
 		for (int i=0; i < n+2; i++)
 		{
-		//	cout << i << ' ' << b_tilde[i] << endl;
 		//	printf ("%g %g %g\n", x[i], f_tilde[i], v[i]);
 			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
 		}
