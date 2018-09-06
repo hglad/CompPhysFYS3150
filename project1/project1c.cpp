@@ -4,6 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include <ctime>
+#include <iomanip>
 
 /*
 Task c) With identical values along the diagonal, we can set all elements in vectors a and c to -1.
@@ -33,10 +34,6 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-		// Initialize variables to calculate execution time
-		clock_t t;
-		t = clock();
-
 		int n=atoi(argv[1]);
 		double h = 1. / (n+1);
 
@@ -72,6 +69,11 @@ int main(int argc, char* argv[])
 
 		// Main algorithm: perform forward and backward substitution
 		double _b_tilde;
+
+		// Initialize variables to calculate execution time
+		clock_t t;
+		t = clock();
+
 		for (int i=2; i < n+2; i++)
 		{
 			_b_tilde = 1./(b_tilde[i-1]);	// save FLOPS by calculating once
@@ -85,9 +87,9 @@ int main(int argc, char* argv[])
 
 		// Calculate time by using number of clock ticks elapsed
 		t = clock() - t;
-		double sec;
-		sec = (float)t/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
-		cout << sec << endl;
+		double total_seconds;
+		total_seconds = float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
+		printf ("CPU time for main algorithm: %g seconds\n", total_seconds);
 
 		// Write arrays x, u and v to file
 		ofstream myfile;
@@ -99,7 +101,6 @@ int main(int argc, char* argv[])
 		//	printf ("%g %g %g\n", x[i], f_tilde[i], v[i]);
 			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
 		}
-		cout << v[n+1] << endl;
 		myfile.close();
 		printf ("Solution computed for n = %i. Results written to file.\n", n);
 

@@ -29,10 +29,6 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-		// Initialize variables to calculate execution time
-		clock_t t;
-		t = clock();
-
 		int n=atoi(argv[1]);		   // endpoint of x-array
 		double h = 1. / (n+1);
 
@@ -74,6 +70,10 @@ int main(int argc, char* argv[])
 		b_tilde[0] = b[0];
 		b_tilde[1] = b[0];
 
+		// Initialize variables to calculate execution time
+		clock_t t;
+		t = clock();
+
 		// Main algorithm: perform forward and backward substitution
 		double a_b_tilde;
 		for (int i=2; i < n+2; i++)
@@ -89,9 +89,9 @@ int main(int argc, char* argv[])
 
 		// Calculate time by using number of clock ticks elapsed
 		t = clock() - t;
-		double sec;
-		sec = (float)t/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
-		cout << sec << endl;
+		double total_seconds;
+		total_seconds = float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
+		printf ("CPU time for main algorithm: %g seconds\n", total_seconds);
 
 		// Write arrays x, u and v to file
 		ofstream myfile;

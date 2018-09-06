@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
     A(i, i+1)  = -1;      // Upper diagonal values
     A(i+1, i)  = -1;      // Lower diagonal values
   }
-  
+
 // Set 2nd last main diagonal manually
   A(n-1, n-1) = 2;
-  cout << A << endl;
+//  cout << A << endl;
 
   mat f_mark = zeros(n);    // m x 1 matrix (vector)
   double *x = new double[n];
@@ -41,8 +41,18 @@ int main(int argc, char* argv[])
     f_mark(i) = f_mark__(x[i],h);
   }
 
+  // Initialize variables to calculate execution time
+  clock_t t;
+  t = clock();
+
 // Solve using LU decomposition
   vec v = solve(A, f_mark);
+
+  // Calculate time by using number of clock ticks elapsed
+  t = clock() - t;
+  double total_seconds;
+  total_seconds = float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
+  printf ("CPU time for main algorithm: %g seconds\n", total_seconds);
 
 // Write results to file
   ofstream myfile;
@@ -52,7 +62,7 @@ int main(int argc, char* argv[])
   {
     u[i] = u__(x[i]);						// analytical solution
     myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
-    printf ("%g %g %g\n", x[i], u[i], v[i]);
+//    printf ("%g %g %g\n", x[i], u[i], v[i]);
   }
 
   myfile.close();
