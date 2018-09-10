@@ -1,3 +1,8 @@
+/*
+To compile this code, run the following command:
+make -f makefile_pj1e
+*/
+
 #include <armadillo>
 #include <iostream>
 #include <fstream>
@@ -13,6 +18,16 @@ inline double u__(double x)	{return (1 - (1 - exp(-10))*x - exp(-10*x));}
 
 int main(int argc, char* argv[])
 {
+  if (argc < 2 )
+  {
+    cout << "Input error: specify number of grid points 'n' as an additional argument." << endl;
+    exit(1);
+  }
+  if (argc > 2)
+  {
+    cout << "Input error: too many arguments. Only specify number of grid points 'n'." << endl;
+    exit(1);
+  }
   int n=atoi(argv[1]);
   mat A = zeros(n,n);   // LHS matrix
   double h = 1./(n+1);
@@ -27,7 +42,6 @@ int main(int argc, char* argv[])
 
 // Set 2nd last main diagonal manually
   A(n-1, n-1) = 2;
-//  cout << A << endl;
 
   mat f_mark = zeros(n);    // m x 1 matrix (vector)
   double *x = new double[n];
@@ -50,11 +64,11 @@ int main(int argc, char* argv[])
 
   // Calculate time by using number of clock ticks elapsed
   t = clock() - t;
-  double total_seconds;
-  total_seconds = float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
-  printf ("CPU time for main algorithm: %g seconds\n", total_seconds);
+  double total_ms;
+  total_ms = 1000*float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
+  printf ("CPU time for main algorithm: %g ms\n", total_ms);
 
-// Write results to file
+// Write exact solution and numerical solution as function of x
   ofstream myfile;
   char *project1_e_data;
   myfile.open ("project1_e_data.txt");
@@ -62,11 +76,10 @@ int main(int argc, char* argv[])
   {
     u[i] = u__(x[i]);						// analytical solution
     myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
-//    printf ("%g %g %g\n", x[i], u[i], v[i]);
   }
 
   myfile.close();
-  printf ("Solution computed for n = %i, using Armadillo library. Results written to file.\n", n);
+  printf ("Solution computed for n = %i, using Armadillo library. Results written to 'project1_e_data.txt'\n", n);
 
   return 0;
 }

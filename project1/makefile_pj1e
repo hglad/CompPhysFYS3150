@@ -1,0 +1,2 @@
+all:
+	g++ project1e.cpp -o project1e.x -DARMA_DONT_USE_WRAPPER -lblas -llapack

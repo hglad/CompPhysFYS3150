@@ -1,5 +1,3 @@
-#define _USE_MATH_DEFINES
-
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -28,6 +26,17 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+	// Check if number of command line arguments are correct
+	if (argc < 2 )
+	{
+		cout << "Input error: specify which power of 10 to iterate up to." << endl;
+		exit(1);
+	}
+	if (argc > 2)
+	{
+		cout << "Input error: too many arguments. Only specify power of 10 to iterate up to." << endl;
+		exit(1);
+	}
 		ofstream myfile;
 		char *project1_d_data;
 		myfile.open ("project1_d_data.txt");
@@ -88,7 +97,7 @@ int main(int argc, char* argv[])
 			for (int i=1; i < n+1; i++)
 			{
 				eps[i] = log10(abs( (v[i] - u[i])/u[i] ));
-				if ( abs(eps[i]) > abs(eps[i-1]) )
+				if ( eps[i] > eps[i-1])
 				{
 					max_error[ind_counter] = eps[i];
 				}
@@ -102,5 +111,6 @@ int main(int argc, char* argv[])
 		}
 
 		myfile.close();
+		printf ("Results written to file 'project1_d_data.txt'.\n");
 		return 0;
 }

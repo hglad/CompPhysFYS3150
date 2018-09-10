@@ -1,5 +1,3 @@
-#define _USE_MATH_DEFINES
-
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -34,6 +32,17 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+	// Check if number of command line arguments are correct
+	if (argc < 2 )
+	{
+		cout << "Input error: specify number of grid points 'n' as an additional argument." << endl;
+		exit(1);
+	}
+	if (argc > 2)
+	{
+		cout << "Input error: too many arguments. Only specify number of grid points 'n'." << endl;
+		exit(1);
+	}
 		int n=atoi(argv[1]);
 		double h = 1. / (n+1);
 
@@ -48,7 +57,6 @@ int main(int argc, char* argv[])
 			x[i] = h * i;
 			f_mark[i] = f_mark__(x[i], h);
 			u[i] = u__(x[i]);						// analytical solution
-		//	printf ("x = %g, f_mark = %g \n", x[i], f_mark[i]);
 		}
 		// Set boundary conditions
 		v[0] = 0;
@@ -67,13 +75,12 @@ int main(int argc, char* argv[])
 		b_tilde[0] = b[0];
 		b_tilde[1] = b[0];
 
-		// Main algorithm: perform forward and backward substitution
-		double _b_tilde;
-
 		// Initialize variables to calculate execution time
 		clock_t t;
 		t = clock();
 
+		// Main algorithm: perform forward and backward substitution
+		double _b_tilde;
 		for (int i=2; i < n+2; i++)
 		{
 			_b_tilde = 1./(b_tilde[i-1]);	// save FLOPS by calculating once
@@ -87,22 +94,21 @@ int main(int argc, char* argv[])
 
 		// Calculate time by using number of clock ticks elapsed
 		t = clock() - t;
-		double total_seconds;
-		total_seconds = float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
-		printf ("CPU time for main algorithm: %g seconds\n", total_seconds);
+		double total_ms;
+		total_ms = 1000*float(t)/CLOCKS_PER_SEC;	// num. of milliseconds algorithm takes to run
+		printf ("CPU time for main algorithm: %g ms\n", total_ms);
 
-		// Write arrays x, u and v to file
+		// Write exact solution and numerical solution as function of x
 		ofstream myfile;
 		char *project1_c_data;
 		myfile.open ("project1_c_data.txt");
 
 		for (int i=0; i < n+2; i++)
 		{
-		//	printf ("%g %g %g\n", x[i], f_tilde[i], v[i]);
 			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
 		}
 		myfile.close();
-		printf ("Solution computed for n = %i. Results written to file.\n", n);
+		printf ("Solution computed for n = %i. Results written to file 'project1_c_data.txt'.\n", n);
 
 		return 0;
 }
