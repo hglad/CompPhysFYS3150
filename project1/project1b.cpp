@@ -99,6 +99,13 @@ int main(int argc, char* argv[])
 		t = clock() - t;
 		double total_ms;
 		total_ms = 1000*float(t)/CLOCKS_PER_SEC;	// num. of seconds algorithm takes to run
+
+		/* Write execution time for main algorithm to file. Used later for calculating average CPU time to compute main algorithm.*/
+		ofstream ofile;
+		ofile.open("error.txt", ofstream::app);
+		ofile << n << " " << total_ms << endl;
+		ofile.close();
+
 		printf ("CPU time for main algorithm: %g ms\n", total_ms);
 
 		// Write exact solution and numerical solution as function of x
