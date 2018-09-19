@@ -10,45 +10,23 @@ void arma_diag_test(mat A)
   // Generate vector to hold eigenvalues and matrix to hold eigenvectors
   vec eigval;
   mat eigvec;
+  // Decompose into eigenvalues and eigenvalues
   eig_sym(eigval, eigvec, A);
   cout << "Eigenvalues and eigenvectors:" << endl;
   cout << eigval << eigvec << endl;
   return;
 }
 
-void Jacobi_rot(mat& A, int n)
+// Calculate sine and cosine values, given matrix and indices to max value
+double trig(mat& A, double k, double l)
 {
-
-  double tau, t, c, s, A_kk, A_ll, A_ik, A_il;
-  //Jacobi's method
-  double eps = 1e-8;
-  double max_elem = 0;
-  int k, l;   // indices for maximum off-diagonal values
-
-  // Find index with highest off-diagonal values
-  for (int i=0; i < n-1; i++)
-  {
-    for (int j=0; j < n-1; j++)
-    {
-
-    if (fabs(A(i, j+1)) > max_elem)
-    {
-      max_elem = A(i, j+1);
-      k = i;
-      l = j+1;
-    }
-    //cout << max_elem << endl;
-
-    }
-  }
-  // Calculate values needed for rotation
-  double t1, t2;
+  double tau, t, t1, t2, s, c;
   tau = (A(l, l) - A(k,k)) / 2*A(k, l);
   t1 = -tau + sqrt(1 + tau*tau);
   t2 = -tau - sqrt(1 + tau*tau);
 
   // Minimize t in order to get smallest possible angle
-  if (abs(t1) <= abs(t2))
+  if (fabs(t1) <= fabs(t2))
   {
     t = t1;
   }
@@ -59,17 +37,44 @@ void Jacobi_rot(mat& A, int n)
 
   c = 1./sqrt(1 + t*t);
   s = t*c;
+  return s, c;
+}
+// Perform one Jacobi rotation
+void Jacobi_rot(mat& A, int n, double& max_elem)
+{
+  max_elem = 0; // if max_elem is large enough, set to 0 before finding next max
+  double A_kk, A_ll, A_ik, A_il;
+  int k, l;   // indices for maximum off-diagonal values
+
+  // Find index with highest off-diagonal values
+  for (int i=0; i < n-1; i++)
+  {
+    for (int j=0; i+1 < n-1; j++)
+    {
+
+    if (fabs(A(i, j)) > max_elem)
+    {
+      max_elem = fabs(A(i, j));
+      k = i;
+      l = j;
+    //  printf("max_elem in rot-function: %g, i=%i, j=%i\n", max_elem, k, l);
+    }
+
+    }
+  }
+
+  // Calculate sine and cosine with own function
+  double s, c = trig(A, k, l);
 
   // Generate next matrix by rotation
   A_kk = A(k, k);   // use A_kk, A_ll as constants to avoid overwriting
   A_ll = A(l, l);
-
-  A(k,k) = A_kk*c*c - 2*A(k, l)*c*s + A(l, l)*s*s;
-  A(l,l) = A_ll*c*c + 2*A(k, l)*c*s + A(k, k)*s*s;
-
-//  A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
   A(k,l) = 0;
   A(l,k) = 0;
+
+  A(k,k) = A_kk*c*c - 2*A(k, l)*c*s + A_ll*s*s;
+  A(l,l) = A_ll*c*c + 2*A(k, l)*c*s + A_kk*s*s;
+//  A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
 
   // Loop through elements
   for (int i=0; i < n; i++)
@@ -93,15 +98,14 @@ int main(int argc, char *argv[])
 {
   // Initialize matrix and necessary variables
   int n = atoi(argv[1]);
-//  int m = atoi(argv[2]);    // number of times to perform rotation
-  int m = 5*n*n;
-  cout << m << endl;
+  double eps = 1e-8;    // tolerance to represent 0
 
   mat A = zeros(n,n);
   double h = 1./(n+1);
   double d = 2./(h*h);
   double a = -1./(h*h);
 
+  // Generate tridiagonal matrix
   for (int i=0; i < n-1; i++)
   {
     A(i, i)    = d;      // Main diagonal
@@ -112,15 +116,19 @@ int main(int argc, char *argv[])
 
   arma_diag_test(A);
 
-  // Rotate matrix m times
+  // Rotate matrix until value of highest element is close to 0
   cout << A << endl;    // print initial matrix
-  for (int j=0; j < m; j++)
+  double max_elem = 2*eps;  // initialize max variable with arbitrary value > eps
+  int num_rotations = 0;
+  while (max_elem > eps)
   {
-    Jacobi_rot(A, n);
+    Jacobi_rot(A, n, max_elem);
+    num_rotations += 1;
+  //  printf("max_elem outside function: %g\n", max_elem);
   }
 
   cout << A << endl;    // print resulting matrix
-
+  printf("Number of rotations performed: %i\n", num_rotations );
   return 0;
 
 }
