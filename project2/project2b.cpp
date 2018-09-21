@@ -4,7 +4,8 @@
 using namespace arma;
 using namespace std;
 
-// Function to test diagonalization with armadillo
+// Function to test diagonalization with armadillo, results can then be compared
+// to the results of our Jacobi method
 void arma_diag_test(mat A)
 {
   // Generate vector to hold eigenvalues and matrix to hold eigenvectors
@@ -18,7 +19,7 @@ void arma_diag_test(mat A)
 }
 
 // Calculate sine and cosine values, given matrix and indices to max value
-double trig(mat& A, double k, double l)
+double trig(mat& A, int k, int l)
 {
   double tau, t, t1, t2, s, c;
   tau = (A(l, l) - A(k,k)) / 2*A(k, l);
@@ -39,42 +40,44 @@ double trig(mat& A, double k, double l)
   s = t*c;
   return s, c;
 }
-// Perform one Jacobi rotation
+
+// Function that performs a single Jacobi-rotation
 void Jacobi_rot(mat& A, int n, double& max_elem)
 {
-  max_elem = 0; // if max_elem is large enough, set to 0 before finding next max
-  double A_kk, A_ll, A_ik, A_il;
-  int k, l;   // indices for maximum off-diagonal values
+  max_elem = 0; // reset to 0 so that the if-test below works as intended
+  int k, l;     // indices for maximum off-diagonal values
 
-  // Find index with highest off-diagonal values
-  for (int i=0; i < n-1; i++)
+  // Find index with highest off-diagonal values, looping through elements that
+  // lie to the right of the diagonal
+  for (int i=0; i < n; i++)
   {
-    for (int j=0; i+1 < n-1; j++)
+    for (int j=i+1; j < n; j++)
     {
 
     if (fabs(A(i, j)) > max_elem)
     {
+    //  printf("%i, %i\n", i, j);
       max_elem = fabs(A(i, j));
       k = i;
       l = j;
-    //  printf("max_elem in rot-function: %g, i=%i, j=%i\n", max_elem, k, l);
     }
 
     }
   }
-
   // Calculate sine and cosine with own function
   double s, c = trig(A, k, l);
 
   // Generate next matrix by rotation
+  double A_kk, A_ll, A_ik, A_il;
   A_kk = A(k, k);   // use A_kk, A_ll as constants to avoid overwriting
   A_ll = A(l, l);
   A(k,l) = 0;
   A(l,k) = 0;
 
+  //A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
+  //A(l,k) = A(k,l);
   A(k,k) = A_kk*c*c - 2*A(k, l)*c*s + A_ll*s*s;
   A(l,l) = A_ll*c*c + 2*A(k, l)*c*s + A_kk*s*s;
-//  A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
 
   // Loop through elements
   for (int i=0; i < n; i++)
@@ -85,7 +88,8 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
       A_il = A(i,l);
       A(i, k) = A_ik*c - A_il*s;
       A(i, l) = A_il*c + A_ik*s;
-      A(l, l) = A_ll*c*c + 2*A(k,l)*c*s + A_kk*s*s;
+      A(k, i) = A(i, k);        // symmetric matrix
+      A(l, i) = A(i, l);
     //  A(k, l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
     //  A(k, i) = A(i, k);
     //  A(l, i) = A(i, l);
@@ -112,19 +116,20 @@ int main(int argc, char *argv[])
     A(i, i+1)  = a;      // Upper diagonal values
     A(i+1, i)  = a;      // Lower diagonal values
   }
-  A(n-1, n-1) = d;
+  A(n-1, n-1) = d;       // Last diagonal element
 
-  arma_diag_test(A);
+  arma_diag_test(A);    // Find eigenvalues- and vectors with armadillo
 
   // Rotate matrix until value of highest element is close to 0
   cout << A << endl;    // print initial matrix
   double max_elem = 2*eps;  // initialize max variable with arbitrary value > eps
   int num_rotations = 0;
+
   while (max_elem > eps)
   {
     Jacobi_rot(A, n, max_elem);
     num_rotations += 1;
-  //  printf("max_elem outside function: %g\n", max_elem);
+    //printf("max_elem outside function: %g\n", max_elem);
   }
 
   cout << A << endl;    // print resulting matrix
