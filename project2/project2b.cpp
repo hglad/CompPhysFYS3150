@@ -56,10 +56,10 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
 
     if (fabs(A(i, j)) > max_elem)
     {
-    //  printf("%i, %i\n", i, j);
       max_elem = fabs(A(i, j));
       k = i;
       l = j;
+    //  printf("%i, %i, %g\n", k, l, max_elem);
     }
 
     }
@@ -71,28 +71,29 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
   double A_kk, A_ll, A_ik, A_il;
   A_kk = A(k, k);   // use A_kk, A_ll as constants to avoid overwriting
   A_ll = A(l, l);
-  A(k,l) = 0;
-  A(l,k) = 0;
 
   //A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
   //A(l,k) = A(k,l);
-  A(k,k) = A_kk*c*c - 2*A(k, l)*c*s + A_ll*s*s;
-  A(l,l) = A_ll*c*c + 2*A(k, l)*c*s + A_kk*s*s;
+  double cc, ss, cs;
+  cc = c*c;    ss = s*s;    cs = c*s;
+
+  A(k,l) = 0;
+  A(l,k) = 0;
+  A(k,k) = A_kk*cc - 2*A(k, l)*cs + A_ll*ss;
+  A(l,l) = A_ll*cc + 2*A(k, l)*cs + A_kk*ss;
 
   // Loop through elements
   for (int i=0; i < n; i++)
   {
     if (i != k && i != l)
     {
-      A_ik = A(i,k);   // define constants to avoid replacing value in algo
-      A_il = A(i,l);
+      A_ik = A(i,k);   // define constants to avoid replacing value before it
+      A_il = A(i,l);   // is used in the next calculation
       A(i, k) = A_ik*c - A_il*s;
       A(i, l) = A_il*c + A_ik*s;
       A(k, i) = A(i, k);        // symmetric matrix
       A(l, i) = A(i, l);
     //  A(k, l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
-    //  A(k, i) = A(i, k);
-    //  A(l, i) = A(i, l);
     }
   }
   return;
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
 {
   // Initialize matrix and necessary variables
   int n = atoi(argv[1]);
-  double eps = 1e-8;    // tolerance to represent 0
+  double eps = 1e-8;    // tolerance to represent values close enough to 0
 
   mat A = zeros(n,n);
   double h = 1./(n+1);
@@ -121,14 +122,15 @@ int main(int argc, char *argv[])
   arma_diag_test(A);    // Find eigenvalues- and vectors with armadillo
 
   // Rotate matrix until value of highest element is close to 0
-  cout << A << endl;    // print initial matrix
-  double max_elem = 2*eps;  // initialize max variable with arbitrary value > eps
+  cout << A << endl;       // print initial matrix
+  double max_elem = 2*eps; // initialize max variable with arbitrary value > eps
   int num_rotations = 0;
 
   while (max_elem > eps)
   {
     Jacobi_rot(A, n, max_elem);
     num_rotations += 1;
+    //printf("Rotation %i complete\n", num_rotations);
     //printf("max_elem outside function: %g\n", max_elem);
   }
 
