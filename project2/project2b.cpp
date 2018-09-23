@@ -22,7 +22,9 @@ void arma_diag_test(mat A)
 double trig(mat& A, int k, int l)
 {
   double tau, t, t1, t2, s, c;
-  tau = (A(l, l) - A(k,k)) / 2*A(k, l);
+  cout << k << ' ' << l << ' ' << A(l,l) << ' ' << A(k,k) << ' ' << A(k,l) << endl;
+  tau = (A(l, l) - A(k,k)) / (2*A(k, l));
+  /*
   t1 = -tau + sqrt(1 + tau*tau);
   t2 = -tau - sqrt(1 + tau*tau);
 
@@ -35,7 +37,9 @@ double trig(mat& A, int k, int l)
   {
     t = t2;
   }
-
+  */
+  t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
+  cout << tau << ' ' << t << endl;
   c = 1./sqrt(1 + t*t);
   s = t*c;
   return s, c;
