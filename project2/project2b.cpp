@@ -23,25 +23,35 @@ double trig(mat& A, int k, int l)
 {
   double tau, t, t1, t2, s, c;
   cout << k << ' ' << l << ' ' << A(l,l) << ' ' << A(k,k) << ' ' << A(k,l) << endl;
-  tau = (A(l, l) - A(k,k)) / (2*A(k, l));
-  /*
-  t1 = -tau + sqrt(1 + tau*tau);
-  t2 = -tau - sqrt(1 + tau*tau);
 
-  // Minimize t in order to get smallest possible angle
-  if (fabs(t1) <= fabs(t2))
+  if (A(k,l) != 0.0 )
   {
-    t = t1;
+    tau = (A(l, l) - A(k,k)) / (2*A(k, l));
+
+    //t1 = -tau + sqrt(1 + tau*tau);
+    //t2 = -tau - sqrt(1 + tau*tau);
+
+    // Minimize t in order to get smallest possible angle
+    //if (fabs(t1) <= fabs(t2))
+    if (tau > 0)
+    {
+      t = 1./(tau + sqrt(1+tau*tau));
+    }
+    else
+    {
+      t = -1./(-tau+sqrt(1+tau*tau));
+    }
+
+    //t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
+  //  cout << tau << ' ' << t << endl;
+    c = 1./sqrt(1 + t*t);
+    s = t*c;
   }
   else
   {
-    t = t2;
+    c = 1.0;
+    s = 0.0;
   }
-  */
-  t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
-  cout << tau << ' ' << t << endl;
-  c = 1./sqrt(1 + t*t);
-  s = t*c;
   return s, c;
 }
 
