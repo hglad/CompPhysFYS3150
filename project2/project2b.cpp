@@ -1,6 +1,6 @@
 #include <armadillo>
 #include <iostream>
-
+#include <tuple>
 using namespace arma;
 using namespace std;
 
@@ -18,47 +18,9 @@ void arma_diag_test(mat A)
   return;
 }
 
-// Calculate sine and cosine values, given matrix and indices to max value
-double trig(mat& A, int k, int l)
-{
-  double tau, t, t1, t2, s, c;
-  cout << k << ' ' << l << ' ' << A(l,l) << ' ' << A(k,k) << ' ' << A(k,l) << endl;
-
-  if (A(k,l) != 0.0 )
-  {
-    tau = (A(l, l) - A(k,k)) / (2*A(k, l));
-
-    //t1 = -tau + sqrt(1 + tau*tau);
-    //t2 = -tau - sqrt(1 + tau*tau);
-
-    // Minimize t in order to get smallest possible angle
-    //if (fabs(t1) <= fabs(t2))
-    t1 = 1./(tau + sqrt(1+tau*tau));
-    t2 = -1./(-tau + sqrt(1+tau*tau));
-
-    if (fabs(t1) < fabs(t2))
-    {
-      t = t1;
-    }
-    else
-    {
-      t = t2;
-    }
-
-    //t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
-  //  cout << tau << ' ' << t << endl;
-    c = 1./sqrt(1 + t*t);
-    s = t*c;
-  }
-  else
-  {
-    c = 1.0;
-    s = 0.0;
-  }
-  return s, c;
-}
 
 // Function that performs a single Jacobi-rotation
+
 void Jacobi_rot(mat& A, int n, double& max_elem)
 {
   max_elem = 0; // reset to 0 so that the if-test below works as intended
@@ -82,7 +44,44 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
     }
   }
   // Calculate sine and cosine with own function
-  double s, c = trig(A, k, l);
+
+  // Calculate sine and cosine values, given matrix and indices to max value
+
+  double tau, t, t1, t2, s, c;
+  //cout << k << ' ' << l << ' ' << A(l,l) << ' ' << A(k,k) << ' ' << A(k,l) << endl;
+
+  if (A(k,l) != 0.0 )
+  {
+    tau = (A(l, l) - A(k,k)) / (2*A(k, l));
+
+      //t1 = -tau + sqrt(1 + tau*tau);
+      //t2 = -tau - sqrt(1 + tau*tau);
+
+      // Minimize t in order to get smallest possible angle
+
+    t1 = 1./(tau + sqrt(1+tau*tau));
+    t2 = -1./(-tau + sqrt(1+tau*tau));
+
+    if (fabs(t1) <= fabs(t2))
+    {
+      t = t1;
+    }
+    else
+    {
+      t = t2;
+    }
+
+      //t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
+    //  cout << tau << ' ' << t << endl;
+    c = 1./sqrt(1 + t*t);
+    s = t*c;
+  }
+  else
+  {
+    c = 1.0;
+    s = 0.0;
+  }
+  //cout << s << ' ' << c << endl;
 
   // Generate next matrix by rotation
   double A_kk, A_ll, A_ik, A_il;
@@ -92,10 +91,10 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
   double cc, ss, cs;
   cc = c*c;    ss = s*s;    cs = c*s;
 
-  A(k,l) = 0;
-  A(l,k) = 0;
   A(k,k) = A_kk*cc - 2*A(k, l)*cs + A_ll*ss;
   A(l,l) = A_ll*cc + 2*A(k, l)*cs + A_kk*ss;
+  A(k,l) = 0;
+  A(l,k) = 0;
 
   // Loop through elements
   for (int i=0; i < n; i++)
