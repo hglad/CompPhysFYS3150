@@ -33,13 +33,16 @@ double trig(mat& A, int k, int l)
 
     // Minimize t in order to get smallest possible angle
     //if (fabs(t1) <= fabs(t2))
-    if (tau > 0)
+    t1 = 1./(tau + sqrt(1+tau*tau));
+    t2 = -1./(-tau + sqrt(1+tau*tau));
+
+    if (fabs(t1) < fabs(t2))
     {
-      t = 1./(tau + sqrt(1+tau*tau));
+      t = t1;
     }
     else
     {
-      t = -1./(-tau+sqrt(1+tau*tau));
+      t = t2;
     }
 
     //t = (2*tau*tau + 1 + 2*tau*sqrt(1+tau*tau))/(-tau-sqrt(1+tau*tau));
@@ -86,8 +89,6 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
   A_kk = A(k, k);   // use A_kk, A_ll as constants to avoid overwriting
   A_ll = A(l, l);
 
-  //A(k,l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
-  //A(l,k) = A(k,l);
   double cc, ss, cs;
   cc = c*c;    ss = s*s;    cs = c*s;
 
@@ -104,8 +105,8 @@ void Jacobi_rot(mat& A, int n, double& max_elem)
       A_ik = A(i,k);   // define constants to avoid replacing value before it
       A_il = A(i,l);   // is used in the next calculation
       A(i, k) = A_ik*c - A_il*s;
-      A(i, l) = A_il*c + A_ik*s;
       A(k, i) = A(i, k);        // symmetric matrix
+      A(i, l) = A_il*c + A_ik*s;
       A(l, i) = A(i, l);
     //  A(k, l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
     }
@@ -120,7 +121,7 @@ int main(int argc, char *argv[])
   double eps = 1e-8;    // tolerance to represent values close enough to 0
 
   mat A = zeros(n,n);
-  double h = 1./(n+1);
+  double h = 1./(n);
   double d = 2./(h*h);
   double a = -1./(h*h);
 
