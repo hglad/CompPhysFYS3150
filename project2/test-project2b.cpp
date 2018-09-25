@@ -5,9 +5,6 @@
 #include "catch.hpp"
 #include "project2b.h"
 
-using namespace arma;
-using namespace std;
-
 vec jacobi_diag(mat& B)
 {
   int m = B.n_cols;     // dimension of matrix
@@ -64,24 +61,28 @@ mat generate_mat(int m)
 
 int m = 5;
 mat B = generate_mat(m);
-vec eig_jac = jacobi_diag(B);  // Find eigenvalues using Jacobi's method
-vec eig_arma = arma_diag(B);   // Generate eigenvalue vector with Armadillo
 
 TEST_CASE("Check if eigenvalues are correct")
 {
-    for (int i=0; i < m; i++)
-    {
-      REQUIRE( eig_jac(i) == Approx(eig_arma(i)) );
-    }
+  vec eig_jac = jacobi_diag(B);  // Find eigenvalues using Jacobi's method
+  vec eig_arma = arma_diag(B);   // Generate eigenvalue vector with Armadillo
+  for (int i=0; i < m; i++)
+  {
+    REQUIRE( eig_jac(i) == Approx(eig_arma(i)) );
+  }
 }
-/*
+
 TEST_CASE("Check if our method finds the maximum offdiagonal element")
 {
-  max = B.max;
-  cout << max << endl;
-//  double max_elem;
-//  int k, l;
-//  max_elem = max_offdiag(B, &k, &l, max_elem);
-//  REQUIRE(max == Approx(max_elem));
+  B.diag().fill(0);
+  double max_arma = B.max();
+  double max_elem;
+  int k, l;
+  max_elem = max_offdiag(B, &k, &l, max_elem);
+
+  cout << max_arma << ' ' << max_elem << endl;
+  REQUIRE(max_elem == Approx(max_arma));
 }
-/*
+
+
+//
