@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
   double d = 2./(h*h);
   double a = -1./(h*h);
 
-  mat A = zeros(n,n);
   vec rho = linspace(rho_0 + h, rho_max - h, n);
+  mat A = zeros(n,n);
   // Generate tridiagonal matrix with added potential
   for (int i=0; i < n-1; i++)
   {
@@ -20,14 +20,7 @@ int main(int argc, char *argv[])
   }
   A(n-1, n-1) = d + rho[n-1]*rho[n-1];       // Last diagonal element
 
-  cout << A << endl;
-
-  vec eigvals;
-  eigvals = arma_diag(A);    // Find eigenvalues- and vectors with armadillo
-  cout << eigvals << endl;
-  // Rotate matrix until value of highest element is close to 0
-  cout << A << endl;       // print initial matrix
-
+  //cout << A << endl;
   double eps = 1e-8;
   double max_elem = 2*eps; // initialize max variable with arbitrary value > eps
   int num_rotations = 0;
@@ -38,8 +31,9 @@ int main(int argc, char *argv[])
     num_rotations += 1;
     //printf("max_elem outside function: %g\n", max_elem);
   }
+  vec eigvals = A.diag();
+  cout << eigvals << endl;
 
-  cout << A << endl;    // print resulting matrix
   printf("Number of rotations performed: %i\n", num_rotations );
 
   return 0;
