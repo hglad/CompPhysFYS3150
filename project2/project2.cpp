@@ -1,121 +1,98 @@
-#include <iostream>
-#include <cmath>
-#include <fstream>
-#include <ctime>
-#include <iomanip>
+#include "project2.h"
 
-/*
-Task c) With identical values along the diagonal, we can set all elements in vectors a and c to -1.
-*/
-
-//f_mark = h**2 f
-inline double f_mark__(double x, double h) {return pow(h,2)*100.0*exp(-10.0*x);}
-inline double u__(double x)	{return (1 - (1 - exp(-10))*x - exp(-10*x));}
-/*
-Function that creates an array of size 'm' and allocates memory for indices of type double
-*/
-double* vec_mem(int m)
+// Function to test diagonalization with armadillo, results can then be compared
+// to the results of our Jacobi method
+vec arma_diag(mat A)
 {
-	double *v = new double[m];
-	return v;
-}
-/*
-Integer version of function above
-*/
-int* vec_mem_int(int m)
-{
-	int *v = new int[m];
-	return v;
+  // Generate vector to hold eigenvalues and matrix to hold eigenvectors
+  vec eigval;
+  mat eigvec;
+  // Decompose into eigenvalues and eigenvalues
+  eig_sym(eigval, eigvec, A);
+  return sort(eigval);
 }
 
-using namespace std;
-
-int main(int argc, char* argv[])
+double max_offdiag(mat A, int *k, int *l, double& max_elem)
 {
-	// Check if number of command line arguments are correct
-	if (argc < 2 )
-	{
-		cout << "Input error: specify number of grid points 'n' as an additional argument." << endl;
-		exit(1);
-	}
-	if (argc > 2)
-	{
-		cout << "Input error: too many arguments. Only specify number of grid points 'n'." << endl;
-		exit(1);
-	}
-		int n=atoi(argv[1]);
-		double h = 1. / (n+1);
+  max_elem = 0;       // reset to 0 so that the if-test below works as intended
+  int n = A.n_cols;
+  // Find index with highest off-diagonal values, looping through elements that
+  // lie to the right of the diagonal
+  for (int i=0; i < n; i++)
+  {
+    for (int j=i+1; j < n; j++)
+    {
 
-		// Allocate memory to arrays used
-		double *x, *f_mark, *u, *b, *v, *f_tilde, *b_tilde;
-		x = vec_mem(n+2); f_mark = vec_mem(n+2); u = vec_mem(n+2);
-		b = vec_mem(n+2); f_tilde = vec_mem(n+2); b_tilde = vec_mem(n+2);
-		v = vec_mem(n+2);															// unknown solution
+    if (fabs(A(i, j)) > max_elem)
+    {
+      max_elem = fabs(A(i, j));
+      *k = i;
+      *l = j;
+    //  printf("%i, %i, %g\n", k, l, max_elem);
+    }
 
-		for (int i=0; i < n+2 ; i++)		// create x-array
-		{
-			x[i] = h * i;
-			f_mark[i] = f_mark__(x[i], h);
-			u[i] = u__(x[i]);						// analytical solution
-		}
-		// Set boundary conditions
-		v[0] = 0;
-		v[n+1] = 0;
+    }
+  }
+  return max_elem;
+}
 
-		// Fill main diagonal
-		for (int i=0; i < n+2; i++)
-		{
-			b[i] = 2;
-		}
+// Function that performs a single Jacobi-rotation
+void Jacobi_rot(mat& A, double& max_elem)
+{
+  double tau, t, t1, t2, s, c;
+  int k, l;
+  int n = A.n_cols;
 
-		// Set initial f_tilde and b_tilde values to initial f and b values, since
-		// tilde values are not used until index i = 1
-		f_tilde[0] = f_mark[0];
-		f_tilde[1] = f_mark[1];
-		b_tilde[0] = b[0];
-		b_tilde[1] = b[0];
+  max_elem = max_offdiag(A, &k, &l, max_elem);
+  if (A(k,l) != 0.0 )   // Avoid dividing by zero in expression for tau
+  {
+    tau = (A(l, l) - A(k,k)) / (2*A(k, l));
+    t1 = 1./(tau + sqrt(1+tau*tau));
+    t2 = -1./(-tau + sqrt(1+tau*tau));
+    // Minimize t in order to get smallest possible angle
+    if (fabs(t1) <= fabs(t2))
+    {
+      t = t1;
+    }
+    else
+    {
+      t = t2;
+    }
+    // Calculate sine and cosine from best value of t
+    c = 1./sqrt(1 + t*t);
+    s = t*c;
+  }
+  else
+  {
+    c = 1.0;
+    s = 0.0;
+  }
+  // Generate next matrix by rotation
+  double A_kk, A_ll, A_ik, A_il;
+  A_kk = A(k, k);   // use A_kk, A_ll as constants to avoid overwriting
+  A_ll = A(l, l);
 
-		// Initialize variables to calculate execution time
-		clock_t t;
-		t = clock();
+  double cc, ss, cs;
+  cc = c*c;    ss = s*s;    cs = c*s;
 
-		// Main algorithm: perform forward and backward substitution
-		double _b_tilde;
-		for (int i=2; i < n+2; i++)
-		{
-			_b_tilde = 1./(b_tilde[i-1]);	// save FLOPS by calculating once
-			b_tilde[i] = b[i] - _b_tilde;
-	    f_tilde[i] = f_mark[i] + f_tilde[i-1]*_b_tilde;
-		}
-		for (int i=n; i > 0; i--)
-		{
-			v[i] = (f_tilde[i] + v[i+1])/b_tilde[i];
-		}
+  A(k,k) = A_kk*cc - 2*A(k, l)*cs + A_ll*ss;
+  A(l,l) = A_ll*cc + 2*A(k, l)*cs + A_kk*ss;
+  A(k,l) = 0;
+  A(l,k) = 0;
 
-		// Calculate time by using number of clock ticks elapsed
-		t = clock() - t;
-		double total_ms;
-		total_ms = 1000*float(t)/CLOCKS_PER_SEC;	// num. of milliseconds algorithm takes to run
-
-		/* Write execution time for main algorithm to file. Used later for calculating average CPU time to compute main algorithm.*/
-		ofstream ofile;
-		ofile.open("error.txt", ofstream::app);
-		ofile << n << " " << total_ms << endl;
-		ofile.close();
-		
-		printf ("CPU time for main algorithm: %g ms\n", total_ms);
-
-		// Write exact solution and numerical solution as function of x
-		ofstream myfile;
-		char *project1_c_data;
-		myfile.open ("project1_c_data.txt");
-
-		for (int i=0; i < n+2; i++)
-		{
-			myfile << x[i] << ' ' << u[i] << ' ' << v[i] << endl;
-		}
-		myfile.close();
-		printf ("Solution computed for n = %i. Results written to file 'project1_c_data.txt'.\n", n);
-
-		return 0;
+  // Loop through elements
+  for (int i=0; i < n; i++)
+  {
+    if (i != k && i != l)
+    {
+      A_ik = A(i,k);   // define constants to avoid replacing value before it
+      A_il = A(i,l);   // is used in the next calculation
+      A(i, k) = A_ik*c - A_il*s;
+      A(k, i) = A(i, k);        // symmetric matrix
+      A(i, l) = A_il*c + A_ik*s;
+      A(l, i) = A(i, l);
+    //  A(k, l) = (A_kk - A_ll)*c*s + A(k, l)*(c*c - s*s);
+    }
+  }
+  return;
 }

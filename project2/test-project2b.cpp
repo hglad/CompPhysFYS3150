@@ -1,25 +1,21 @@
 // Compile: g++ project2b.cpp test-project2b.cpp -o test.x -DARMA_DONT_USE_WRAPPER -lblas -llapack
-
 // Test that our method finds the eigenvalues of a random 5x5 matrix
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"
-#include "project2b.h"
+#include "project2.h"
 
 vec jacobi_diag(mat& B)
 {
   int m = B.n_cols;     // dimension of matrix
   double eps = 1e-8;
   double max_elem = 2*eps; // initialize max variable with arbitrary value > eps
-  int num_rotations = 0;
-  vec eigvals;
 
   while (max_elem > eps)
   {
     Jacobi_rot(B, max_elem);
-    num_rotations += 1;
   }
   // Store eigenvalues in vector
-  eigvals = B.diag();
+  vec eigvals = B.diag();
 
   cout << sort(eigvals) << endl;
 
@@ -27,22 +23,9 @@ vec jacobi_diag(mat& B)
   return sort(eigvals);
 }
 
-vec arma_diag(mat B)
-{
-  // Generate vector to hold eigenvalues and matrix to hold eigenvectors
-  vec eigval;
-  mat eigvec;
-  // Decompose into eigenvalues and eigenvalues
-  eig_sym(eigval, eigvec, B);
-  cout << "Eigenvalues and eigenvectors:" << endl;
-  cout << eigval << eigvec << endl;
-  return eigval;
-}
-
 mat generate_mat(int m)
 {
   mat B = zeros(m,m);
-
   srand (time(NULL));
   double d = rand() % 1000;
   double a = rand() % 1000;
@@ -60,8 +43,9 @@ mat generate_mat(int m)
 }
 
 int m = 5;
-mat B = generate_mat(m);
+mat B = generate_mat(m); // The matrix we will test our method on
 
+// Test our results
 TEST_CASE("Check if eigenvalues are correct")
 {
   vec eig_jac = jacobi_diag(B);  // Find eigenvalues using Jacobi's method
@@ -74,15 +58,14 @@ TEST_CASE("Check if eigenvalues are correct")
 
 TEST_CASE("Check if our method finds the maximum offdiagonal element")
 {
-  B.diag().fill(0);
-  double max_arma = B.max();
-  double max_elem;
+  B.diag().fill(0);   // do not check main diagonal
+  B = abs(B);
   int k, l;
-  max_elem = max_offdiag(B, &k, &l, max_elem);
+  double max_arma = B.max();
+  double max_elem = max_offdiag(B, &k, &l, max_elem);
 
   cout << max_arma << ' ' << max_elem << endl;
-  REQUIRE(max_elem == Approx(max_arma));
+  REQUIRE( abs(max_elem) == Approx(max_arma) );
 }
-
 
 //
