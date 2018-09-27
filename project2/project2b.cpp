@@ -1,4 +1,4 @@
-#include "project2b.h"
+#include "project2.h"
 using namespace arma;
 using namespace std;
 

@@ -91,8 +91,12 @@ void Jacobi_rot(mat& A, double& max_elem)
   double cc, ss, cs;
   cc = c*c;    ss = s*s;    cs = c*s;
 
-  A(k,k) = A_kk*cc - 2*A(k, l)*cs + A_ll*ss;
+  A(k,k) = A_kk*cc - 2*A(k, l)*cs + A_ll*ss; // 12 flops + 3 flops (cc, ss, cs)
   A(l,l) = A_ll*cc + 2*A(k, l)*cs + A_kk*ss;
+
+  //A(k,k) = A_kk*c*c - 2*A(k, l)*c*s + A_ll*s*s;  // 18 flops
+  //A(l,l) = A_ll*c*c + 2*A(k, l)*c*s + A_kk*s*s;
+
   A(k,l) = 0;
   A(l,k) = 0;
 
