@@ -11,6 +11,22 @@ vec arma_diag(mat A)
   eig_sym(eigval, eigvec, A);
   return sort(eigval);
 }
+// Create tridiagonal matrix given diagonal, superdiagonal and subdiagonal
+// Diagonal is determined from a vector since it does not necessarily have
+// identical values everywhere
+mat generate_mat(int m, vec d, double a1, double a2)
+{
+  mat A = zeros(m, m);
+  for (int i=0; i < m-1; i++)
+  {
+    A(i, i)    = d(i);      // Main diagonal
+    A(i, i+1)  = a1;      // Upper diagonal values
+    A(i+1, i)  = a2;      // Lower diagonal values
+  }
+
+  A(m-1, m-1) = d(m-1);       // Last diagonal element
+  return A;
+}
 
 double max_offdiag(mat A, int *k, int *l, double& max_elem)
 {

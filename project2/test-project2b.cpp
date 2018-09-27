@@ -23,27 +23,18 @@ vec jacobi_diag(mat& B)
   return sort(eigvals);
 }
 
-mat generate_mat(int m)
+// Test for a random tridiagonal matrix. Dense matrix produces less accurate results.
+mat initialize(int m)
 {
-  mat B = zeros(m,m);
   srand (time(NULL));
   double d = rand() % 1000;
   double a = rand() % 1000;
-  // Test for a tridiagonal matrix. Dense matrix produces less accurate results.
-
-  for (int i=0; i < m-1; i++)
-  {
-    B(i, i)    = d;      // Main diagonal
-    B(i, i+1)  = a;      // Upper diagonal values
-    B(i+1, i)  = -a;      // Lower diagonal values
-  }
-
-  B(m-1, m-1) = d;       // Last diagonal element
+  mat B = generate_mat(m, d, a, -a);
   return B;
 }
 
 int m = 5;
-mat B = generate_mat(m); // The matrix we will test our method on
+mat B = initialize(m);
 
 // Test our results
 TEST_CASE("Check if eigenvalues are correct")
@@ -58,7 +49,7 @@ TEST_CASE("Check if eigenvalues are correct")
 
 TEST_CASE("Check if our method finds the maximum offdiagonal element")
 {
-  B.diag().fill(0);   // do not check main diagonal
+  B.diag().fill(0);   // do not check main diagonal for elements
   B = abs(B);
   int k, l;
   double max_arma = B.max();

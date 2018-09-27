@@ -9,7 +9,8 @@ int main(int argc, char *argv[])
 
   //vec rho = linspace(rho_0 + h, rho_max - h, n);
   vec rho = linspace(1, n, n)*h;
-  vec d = 2./(h*h) + rho%rho;
+  double omega_r = atof(argv[3]);
+  vec d = 2./(h*h) + omega_r*omega_r*(rho%rho) + 1./rho;
 
   double a = -1./(h*h);
   // Generate tridiagonal matrix with added potential
@@ -30,8 +31,8 @@ int main(int argc, char *argv[])
   vec eigvals = sort(A.diag());
 
   ofstream myfile;
-  char *project2_d_data;
-  myfile.open ("project2_d_data.txt");
+  char *project2_e_data;
+  myfile.open ("project2_e_data.txt");
   for (int i=0; i < 4; i++)
   {
     myfile << eigvals(i) << endl;
