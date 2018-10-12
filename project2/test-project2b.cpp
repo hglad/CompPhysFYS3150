@@ -1,4 +1,4 @@
-// Compile: g++ project2b.cpp test-project2b.cpp -o test.x -DARMA_DONT_USE_WRAPPER -lblas -llapack
+// Compile: g++ project2.cpp test-project2b.cpp -o test.x -DARMA_DONT_USE_WRAPPER -lblas -llapack
 // Test that our method finds the eigenvalues of a random 5x5 matrix
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 #include "catch.hpp"

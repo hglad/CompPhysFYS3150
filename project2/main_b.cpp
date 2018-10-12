@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
   double eps = 1e-8;    // tolerance to represent values close enough to 0
   double max_elem = 2*eps; // initialize max variable with arbitrary value > eps
   int num_rotations = 0;
-
+  
   while (max_elem > eps)
   {
     Jacobi_rot(A, max_elem);

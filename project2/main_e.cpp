@@ -1,5 +1,5 @@
 #include "project2.h"
-
+// low w_r -> wavefunction spread out, high w_r -> wavefunction concentrated
 int main(int argc, char *argv[])
 {
   int n = atoi(argv[1]);
@@ -9,8 +9,8 @@ int main(int argc, char *argv[])
 
   //vec rho = linspace(rho_0 + h, rho_max - h, n);
   vec rho = linspace(1, n, n)*h;
-  double omega_r = atof(argv[3]);
   vec d = 2./(h*h) + omega_r*omega_r*(rho%rho) + 1./rho;
+  double omega_r = atof(argv[3]);
 
   double a = -1./(h*h);
   // Generate tridiagonal matrix with added potential
