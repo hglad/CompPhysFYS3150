@@ -10,6 +10,7 @@ for line in infile:
     x.append(float(cols[0]))
     y.append(float(cols[1]))
 
+print x[-1], y[-1]
 plt.plot(x, y)
 plt.grid('on')
 plt.show()
