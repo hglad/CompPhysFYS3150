@@ -9,17 +9,16 @@ class planet
   private:
     double pi = M_PI;
     double GM = 4*pi*pi;
-    double M_Sun = 1;
 
   public:
-    // Generate matrix for planet number j
-    void data_mats(int j, double x_0, double y_0, double vx_0, double vy_0, double M)
+    // Needs vectors to hold initial values since we consider multiple planets
+    void data_mats(int n, mat& s, mat& v, mat& a, vec s_0, vec v_0, double M)
     {
-      // Store initial values in matrices
-      s(0,0,j) = x_0;
-      s(0,1,j) = y_0;
-      v(0,0,j) = vx_0;
-      v(0,1,j) = vy_0;
+      // Loop through all planets
+      s(0, 0) = s_0(0);
+      s(0, 1) = s_0(1);
+      v(0, 0) = v_0(0);
+      v(0, 1) = v_0(1);
 
       double r_0 = sqrt(s(0,0,j)*s(0,0,j) + s(0,1,j)*s(0,1,j));
       double F_0 = GM*M/(r_0*r_0);

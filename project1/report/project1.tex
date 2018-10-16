@@ -1,0 +1,108 @@
+\documentclass{emulateapj}
+%\documentclass[12pt,preprint]{aastex}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{epsfig,floatflt}
+
+\begin{document}
+
+\title{Project 1}
+
+\author{Hans Erlend Bakken Glad \& Torbjørn Lode Gjerberg}
+
+\email{ola.d.nordmann@astro.uio.no}
+
+\altaffiltext{1}{Institute of Theoretical Astrophysics, University of
+  Oslo, P.O.\ Box 1029 Blindern, N-0315 Oslo, Norway}
+
+
+%\date{Received - / Accepted -}
+
+\begin{abstract}
+ % State problem. Briefly describe method and data. Summarize main results.
+A common issue with performing heavy numerical calculations is the limited amount of resources available in a computing device. For this reason it is important to write optimized code that does not use more resources than a computer has available. To demonstrate this, we use various numerical methods to solve the one-dimensional Poisson equation with Dirichlet boundary conditions. Our methods were written in C++ and applied on a linear set of equations representing the Poisson equation. We observe that our own written algorithm performs faster and is less prone to memory errors compared to using a regular LU-decomposition performed by the Armadillo library.
+
+\end{abstract}
+\keywords{computational physics -- linear algebra}
+
+\section{Introduction}
+\label{sec:introduction}
+Programs using poorly optimized code will often take longer to run, and in the worst case the program will not execute properly. If the method used for solving a problem requires storing too many values in the RAM (random access memory), the computer will run out of available memory and the program will never finish running.
+
+%Discuss background, physical importance and possibly some history of
+%the problem that is being studied in this paper.
+
+
+\section{Method}
+\label{sec:method}
+% describe chronologically solutions of a)-e)
+
+Describe method. Define data model and likelihood. Outline how the
+likelihood was computed (grid or MCMC).
+
+Define the power law model in terms of $Q$ and $n$. 
+
+\section{Data}
+\label{sec:data}
+
+Summarize properties of data. Which data are used (experiment,
+frequencies etc.)? Pixel resolution ($N_{\textrm{side}}$),
+$\ell_{\textrm{max}}$ -- everything necessary to repeat the analysis
+for other researchers.
+
+Show a sky map of the smoothed data. Use the Healpix routine
+``smoothing'' to do this; it works just like anafast. Smooth with a
+$7^{\circ}$ beam, and plot with ``map2gif''. Show the RMS pattern as
+well. 
+
+\section{Results}
+\label{sec:results}
+
+
+Show the 2D likelihood contours. Summarize constraints on $Q$ and
+$n$. 
+
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+Summarize results. Discuss their importance, referring to the
+discovery to the initial seeds for structure formation. Mention that
+these results are in good agreement with expectations from
+inflationary theory.
+
+%\begin{figure}[t]
+%
+%\mbox{\epsfig{figure=filename.eps,width=\linewidth,clip=}}
+%
+%\caption{Description of figure -- explain all elements, but do not
+%draw conclusions here.}
+%\label{fig:figure_label}
+%\end{figure}
+
+
+
+\begin{deluxetable}{lccc}
+%\tablewidth{0pt}
+\tablecaption{\label{tab:results}}
+\tablecomments{Summary of main results.}
+\tablecolumns{4}
+\tablehead{Column 1  & Column 2 & Column 3 & Column 4}
+\startdata
+Item 1 & Item 2 & Item 3 & Item 4
+\enddata
+\end{deluxetable}
+
+
+\begin{thebibliography}{}
+
+\bibitem[G{\'o}rski et al.(1994)]{gorski:1994} G{\'o}rski, K. M.,
+  Hinshaw, G., Banday, A. J., Bennett, C. L., Wright, E. L., Kogut,
+  A., Smoot, G. F., and Lubin, P.\ 1994, ApJL, 430, 89
+
+\end{thebibliography}
+
+
+\end{document}
