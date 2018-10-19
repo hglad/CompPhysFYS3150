@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Open file containing data for task b), read lines and store data in arrays
-infile = open("project3a.txt", 'r')
+infile = open("project3.txt", 'r')
 x = []
 y = []
 for line in infile:
