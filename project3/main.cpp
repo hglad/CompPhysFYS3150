@@ -41,6 +41,8 @@ int main(int argc, char const *argv[])
 
   // Integration loop
   vec old_Acc = {0,0};
+//  double a_0 = Earth.grav_force(Sun)/ME;
+//  old_Acc = {a_0*1, a_0*0};
   for (int i=0; i < n; i++)
   {
     Earth_Sun.Verlet(PosE, VelE, old_Acc);
@@ -49,6 +51,7 @@ int main(int argc, char const *argv[])
     // Update object values
     Earth.update(PosE, VelE);
   }
+
   cout << Earth.Pos << endl;
   myfile.close();
 
