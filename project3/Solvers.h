@@ -31,6 +31,8 @@ public:
 
   void Verlet(vec& pos, vec& vel, vec& old_Acc);
 
+  void Euler(vec& pos, vec& vel);
+
 };
 
 #endif /* SOLVERS_H */

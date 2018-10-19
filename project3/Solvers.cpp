@@ -38,10 +38,10 @@ void Solvers::Verlet(vec& pos, vec& vel, vec& old_Acc)
   {
     temp_d = target_Body.distance(Bodies[j]);
     cout << temp_d << endl;
-    temp_a = target_Body.grav_force(Bodies[j])/target_Body.M; // acceleration
+    temp_a = target_Body.grav_force(Bodies[j])/target_Body.M; // acceleration magnitude
 
-    Delta_x = target_Body.Pos(0) - Bodies[j].Pos(0);
-    Delta_y = target_Body.Pos(1) - Bodies[j].Pos(1);
+    Delta_x = target_Body.Pos(0) - Bodies[j].Pos(0); // x-coordinate difference
+    Delta_y = target_Body.Pos(1) - Bodies[j].Pos(1); // y-coordinate difference
 
     acc(0) += -temp_a * Delta_x/temp_d;     // x-component of acceleration
     acc(1) += -temp_a * Delta_y/temp_d;     // y-component of acceleration
@@ -49,6 +49,30 @@ void Solvers::Verlet(vec& pos, vec& vel, vec& old_Acc)
 
   vel = old_Vel + dt/2*( acc + old_Acc );
   old_Acc = acc;
+
+  target_Body.update(pos, vel);
+
+  return;
+}
+
+void Solvers::Euler(vec& pos, vec& vel)
+{
+  acc = {0,0};    // reset acceleration
+  for (int j=0; j < n_ext_bodies; j++)
+  {
+    temp_d = target_Body.distance(Bodies[j]);
+    cout << temp_d << endl;
+    temp_a = target_Body.grav_force(Bodies[j])/target_Body.M; // acceleration magnitude
+
+    Delta_x = target_Body.Pos(0) - Bodies[j].Pos(0); // x-coordinate difference
+    Delta_y = target_Body.Pos(1) - Bodies[j].Pos(1); // y-coordinate difference
+
+    acc(0) += -temp_a * Delta_x/temp_d;     // x-component of acceleration
+    acc(1) += -temp_a * Delta_y/temp_d;     // y-component of acceleration
+  }
+
+  vel = vel + acc*dt;
+  pos = pos + vel*dt;
 
   target_Body.update(pos, vel);
 

@@ -31,7 +31,6 @@ void Body::update(vec newPos, vec newVel)
   return;
 }
 
-
 double Body::distance(Body otherbody)
 {
   double delta_x = Pos(0) - otherbody.Pos(0);
