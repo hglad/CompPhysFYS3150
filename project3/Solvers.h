@@ -17,9 +17,8 @@ public:
   vec old_Vel;
   vec acc = {0,0};  // initialize acceleration as zero, add contributions later
 
-  double delta_x;
-  double delta_y;
-  double old_d;
+  double Delta_x;
+  double Delta_y;
   double temp_d;
   double temp_a;
   int n_ext_bodies;

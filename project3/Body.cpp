@@ -1,7 +1,7 @@
 #include "Body.h"
 #include <armadillo>
-// define constructors for Body
 
+// define constructors for Body
 Body::Body()   // generate an Earth body 1 AU from the Sun with circular orbit
 {
   double M_Sun_kg = 1.989*pow(10,30);
@@ -18,12 +18,19 @@ Body::Body(vec pos, vec vel, double m)
   M = m;
 }
 
-// define functions for Body
-
+// define member functions for Body
 void Body::print()
 {
   cout << Pos << '\n' << Vel << '\n' << M << endl;
 }
+
+void Body::update(vec newPos, vec newVel)
+{
+  Pos = newPos;
+  Vel = newVel;
+  return;
+}
+
 
 double Body::distance(Body otherbody)
 {

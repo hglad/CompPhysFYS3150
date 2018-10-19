@@ -5,38 +5,31 @@
 
 int main(int argc, char const *argv[])
 {
+  // Simulation parameters
+  double T = 1;      //years
+  double dt = 0.01;   //years
+  int n = (T/dt)+1;
+  cout << n << endl;
+
+  // Physical constants
   double pi = M_PI;
   double M_Sun_kg = 1.989*pow(10,30);
   double MSun = 1;
 
   double ME = 5.972*pow(10,24)/M_Sun_kg;
 
+  // Initial vectors
   vec PosSun = {0,0};
   vec VelSun = {0,0};
 
   vec PosE = {1,0};
   vec VelE = {0, 2*pi};
 
+  // Create objects representing planets/sun
   Body Sun(PosSun, VelSun, MSun);
   Body Earth(PosE, VelE, ME);
 
   cout << Earth.distance(Sun) << endl;
-
-  double T = 1;      //years
-  double dt = 0.01;   //years
-  int n = (T/dt)+1;
-
-  double dOld;
-  double d;
-  double FOld;
-  double F;
-
-  vec PosOld;
-  vec VelOld;
-
-  vec AccE = {0,0};
-  vec AccOld;
-  cout << n << endl;
 
   ofstream myfile;
   myfile.open ("project3.txt");
@@ -44,18 +37,25 @@ int main(int argc, char const *argv[])
 
   vector<Body> bodies = {Sun};    // vector with elements that are Body objects
 
-  vec old_Acc = {0,0};
   Solvers Earth_Sun(Earth, bodies, dt);
 
   // Integration loop
+  vec old_Acc = {0,0};
   for (int i=0; i < n; i++)
   {
     Earth_Sun.Verlet(PosE, VelE, old_Acc);
+    myfile << PosE(0) << ' ' << PosE(1) << endl;
+    // Update object values
+    Earth.update(PosE, VelE);
   }
-
-  //cout << Earth.distance(Sun) << endl;
-  //cout << PosE(0) << ' ' << PosE(1) << endl;
+  cout << Earth.Pos << endl;
+//  cout << Earth.distance(Sun) << endl;
+//  cout << PosE(0) << ' ' << PosE(1) << endl;
   myfile.close();
+
+  return 0;
+
+}
 
   // Verlet
   /*
@@ -82,6 +82,3 @@ int main(int argc, char const *argv[])
 
   }
   */
-  return 0;
-
-}

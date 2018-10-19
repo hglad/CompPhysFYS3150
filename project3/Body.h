@@ -22,9 +22,13 @@ public:
 
   void print();
 
+  void update(vec newPos, vec newVel);
+
   double distance(Body otherbody);
 
   double grav_force(Body otherbody);
+
+
 };
 
 
