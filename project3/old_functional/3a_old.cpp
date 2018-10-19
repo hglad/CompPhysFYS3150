@@ -1,7 +1,7 @@
-#include "solvers.h"
-#include "planet.h"
+#include "solvers_old.h"
+#include "planet_old.h"
 #include <fstream>
-  
+
 int main(int argc, char* argv[])
 {
   double T = 1;   // simulation time in years

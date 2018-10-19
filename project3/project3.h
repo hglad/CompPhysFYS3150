@@ -5,7 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include "math.h"
-  
+#include <vector>
+
 using namespace arma;
 using namespace std;
 

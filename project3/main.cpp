@@ -1,5 +1,7 @@
 #include "Body.h"
 #include "math.h"
+#include "Solvers.h"
+#include <vector>
 
 int main(int argc, char const *argv[])
 {
@@ -20,8 +22,8 @@ int main(int argc, char const *argv[])
 
   cout << Earth.distance(Sun) << endl;
 
-  double T = 3;      //years
-  double dt = 0.001;   //years
+  double T = 1;      //years
+  double dt = 0.01;   //years
   int n = (T/dt)+1;
 
   double dOld;
@@ -40,7 +42,23 @@ int main(int argc, char const *argv[])
   myfile.open ("project3.txt");
   myfile << PosE(0) << ' ' << PosE(1) << endl;
 
+  vector<Body> bodies = {Sun};    // vector with elements that are Body objects
+
+  vec old_Acc = {0,0};
+  Solvers Earth_Sun(Earth, bodies, dt);
+
+  // Integration loop
+  for (int i=0; i < n; i++)
+  {
+    Earth_Sun.Verlet(PosE, VelE, old_Acc);
+  }
+
+  //cout << Earth.distance(Sun) << endl;
+  //cout << PosE(0) << ' ' << PosE(1) << endl;
+  myfile.close();
+
   // Verlet
+  /*
   for (int i=0; i < n; i++)
   {
     PosOld = PosE;
@@ -63,9 +81,7 @@ int main(int argc, char const *argv[])
     myfile << PosE(0) << ' ' << PosE(1) << endl;
 
   }
-  cout << PosE(0) << ' ' << PosE(1) << endl;
-  myfile.close();
-
+  */
   return 0;
 
 }

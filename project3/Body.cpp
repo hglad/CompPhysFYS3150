@@ -2,11 +2,13 @@
 #include <armadillo>
 // define constructors for Body
 
-Body::Body()
+Body::Body()   // generate an Earth body 1 AU from the Sun with circular orbit
 {
-  Pos = {-1, 0};
-  Vel = {0, -pi};
-  M = 1e-6;
+  double M_Sun_kg = 1.989*pow(10,30);
+  double ME = 5.972*pow(10,24)/M_Sun_kg;    //scaled mass of Earth
+  Pos = {1, 0};
+  Vel = {0, 2*pi};
+  M = ME;
 }
 
 Body::Body(vec pos, vec vel, double m)
@@ -27,7 +29,7 @@ double Body::distance(Body otherbody)
 {
   double delta_x = Pos(0) - otherbody.Pos(0);
   double delta_y = Pos(1) - otherbody.Pos(1);
-
+//  cout << delta_x << ' ' << delta_y << endl;
   return sqrt(delta_x*delta_x + delta_y*delta_y);
 }
 
