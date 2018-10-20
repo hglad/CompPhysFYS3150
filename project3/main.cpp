@@ -48,6 +48,7 @@ int main(int argc, char const *argv[])
     Earth_Sun.Verlet(PosE, VelE, old_Acc);
     //Earth_Sun.Euler(PosE, VelE);
     myfile << PosE(0) << ' ' << PosE(1) << endl;
+  //  myfile << Earth.Pos(0) << ' ' << Earth.Pos(1) << endl;
     // Update object values
     Earth.update(PosE, VelE);
   }

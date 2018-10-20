@@ -32,7 +32,7 @@ void Solvers::Verlet(vec& pos, vec& vel, vec& old_Acc)
   old_Vel = vel;
   acc = {0,0};    // reset acceleration
 
-  pos = old_Pos + dt*old_Vel + old_Acc*dt*dt/2;
+  pos += dt*old_Vel + old_Acc*dt*dt/2;
   // Loop through bodies in the system that accelerate the target body
   for (int j=0; j < n_ext_bodies; j++)
   {
@@ -47,7 +47,7 @@ void Solvers::Verlet(vec& pos, vec& vel, vec& old_Acc)
     acc(1) += -temp_a * Delta_y/temp_d;     // y-component of acceleration
   }
 
-  vel = old_Vel + dt/2*( acc + old_Acc );
+  vel += dt/2*( acc + old_Acc );
   old_Acc = acc;
 
   target_Body.update(pos, vel);
