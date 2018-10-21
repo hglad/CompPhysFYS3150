@@ -31,7 +31,7 @@ public:
 
   //void Verlet(vec& pos, vec& vel, vec& old_Acc);
 
-  void Verlet(Body anybody, vec& old_Acc);
+  void Verlet(vec& pos, vec& vel, vec& old_Acc);
 
   void Euler(vec& pos, vec& vel);
 

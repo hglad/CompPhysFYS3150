@@ -74,7 +74,7 @@ void Solvers::Euler(vec& pos, vec& vel)
   vel = vel + acc*dt;
   pos = pos + vel*dt;
 
-  target_Body.update(pos, vel);
+  //target_Body.update(pos, vel);
 
   return;
 }

@@ -46,11 +46,11 @@ int main(int argc, char const *argv[])
   for (int i=0; i < n; i++)
   {
     Earth_Sun.Verlet(PosE, VelE, old_Acc);
-    //Earth_Sun.Euler(PosE, VelE);
+  //  Earth_Sun.Euler(PosE, VelE);
     myfile << PosE(0) << ' ' << PosE(1) << endl;
   //  myfile << Earth.Pos(0) << ' ' << Earth.Pos(1) << endl;
     // Update object values
-    Earth.update(PosE, VelE);
+    //Earth.update(PosE, VelE);
   }
 
   cout << Earth.Pos << endl;
