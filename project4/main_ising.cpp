@@ -17,11 +17,6 @@ void newPos(int *x, int *y, int L)
   return;
 }
 
-random_device rd;  //Will be used to obtain a seed for the random number engine
-mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-uniform_real_distribution<> dis(0.0, 1.0);
-
-
 void flip(imat& S)        // function to flip a random spin
 {
   int n = S.n_elem;       // amount of elements in S
@@ -34,20 +29,26 @@ int main(int argc, char const *argv[])
 {
   int numMC = 10000;     // num. of MC-cycles
   int L = 2;  int n = L*L;
-  int temp;
+  int temp_spin;
+  double T = 1;
+
   imat S(L,L);
   vec energies = zeros(numMC);
   vec Cvs = zeros(numMC);
 
-  double dE, Cv, M, T;
+  double dE, Cv, M, new_E, w, r;
   int x, y, rand_pos;
-  T = 1;
+
+  random_device rd;  //Will be used to obtain a seed for the random number engine
+  mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+  uniform_real_distribution<> dis(0.0, 1.0);
+
   // Generate L*L matrix with spins -1 or 1
   srand (time(NULL));
   for (int i=0; i < n; i++)
   {
-    temp = rand() % 2;    // returns 0 or 1, corresponding to spin -1 and 1
-    if (temp == 0)
+    temp_spin = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
+    if (temp_spin == 0)
     {
       S(i) = -1;
     }
@@ -59,20 +60,16 @@ int main(int argc, char const *argv[])
 
   cout << S << endl;
 
-
   // Initial energy
   double E = energy_calc(S);
   energies(0) = E;
-  double new_E, w, r;
 
   ofstream myfile;
   myfile.open ("ising_data.txt");
 
   for (int i=1; i < numMC; i++)
   {
-    //newPos(&x, &y, L);
     flip(S);
-
     energies(i) = energy_calc(S);
     dE = energies(i) - energies(i-1);
 
@@ -81,7 +78,7 @@ int main(int argc, char const *argv[])
       // compare w with random number r
       w = exp(-dE/T);
       r = dis(gen);
-      cout << r << endl;
+
       // keep new configuration if true
       if (r <= w)
       {
