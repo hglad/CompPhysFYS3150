@@ -3,17 +3,45 @@
 #include <armadillo>
 #include <time.h>
 #include <random>
+#include <fstream>
 
 using namespace std;
 using namespace arma;
 
+inline double energy_calc(imat S) {return -(2*S(0)*S(1) + 2*S(0)*S(2) + 2*S(1)*S(3) + 2*S(2)*S(3));}
+
+void newPos(int *x, int *y, int L)
+{
+  *x = rand() % L;
+  *y = rand() % L;
+  return;
+}
+
+random_device rd;  //Will be used to obtain a seed for the random number engine
+mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+uniform_real_distribution<> dis(0.0, 1.0);
+
+
+void flip(imat& S)        // function to flip a random spin
+{
+  int n = S.n_elem;       // amount of elements in S
+  int rand_pos = rand() % n;
+  S(rand_pos) *= -1;
+  return;
+}
+
 int main(int argc, char const *argv[])
 {
-  int M = 1000;     // num. of MC-cycles
+  int numMC = 10000;     // num. of MC-cycles
   int L = 2;  int n = L*L;
   int temp;
   imat S(L,L);
+  vec energies = zeros(numMC);
+  vec Cvs = zeros(numMC);
 
+  double dE, Cv, M, T;
+  int x, y, rand_pos;
+  T = 1;
   // Generate L*L matrix with spins -1 or 1
   srand (time(NULL));
   for (int i=0; i < n; i++)
@@ -31,8 +59,74 @@ int main(int argc, char const *argv[])
 
   cout << S << endl;
 
-  
+
+  // Initial energy
+  double E = energy_calc(S);
+  energies(0) = E;
+  double new_E, w, r;
+
+  ofstream myfile;
+  myfile.open ("ising_data.txt");
+
+  for (int i=1; i < numMC; i++)
+  {
+    //newPos(&x, &y, L);
+    flip(S);
+
+    energies(i) = energy_calc(S);
+    dE = energies(i) - energies(i-1);
+
+    if (dE > 0)
+    {
+      // compare w with random number r
+      w = exp(-dE/T);
+      r = dis(gen);
+      cout << r << endl;
+      // keep new configuration if true
+      if (r <= w)
+      {
+        energies(i) = energies(i);
+      }
+      else
+      {
+        energies(i) = energies(i-1);
+      }
+
+    }
+
+    myfile << energies(i) << ' ' << energies(i) << endl;
+
+  }
+
+  cout << S << endl;
+
+  myfile.close();
 
   return 0;
 
 }
+
+/*
+flip(S);
+
+new_E = energy(S);
+dE = new_E - E;
+
+if (dE <= 0)
+{
+  E = new_E;
+}
+
+else
+{
+  // compare w with random number r
+  w = exp(-dE/T);
+  r = dis(gen);
+  // keep new configuration if true
+  if (r <= w)
+  {
+    E = new_E;
+  }
+
+}
+*/
