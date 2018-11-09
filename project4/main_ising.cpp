@@ -4,6 +4,7 @@
 #include <time.h>
 #include <random>
 #include <fstream>
+#include <map>
 
 using namespace std;
 using namespace arma;
@@ -19,10 +20,23 @@ void newPos(int *x, int *y, int L)
 
 void flip(imat& S)        // function to flip a random spin
 {
-  int n = S.n_elem;       // amount of elements in S
+  int n = S.n_elem;
   int rand_pos = rand() % n;
-  S(rand_pos) *= -1;
+  S(rand_pos) *= -1;      // changing sign --> flipping spin
   return;
+}
+
+map<double, double> transitions(double T)
+{
+  map<double, double> acceptAmp; // Dictionary-like data structure
+
+  for (int dE = -8; dE <= 8; dE += 4)
+  {
+    // dictionary element where dE is the key to the corresponding energy
+    acceptAmp.insert(pair<double, double>(dE, exp(-1/T*(dE))));
+  }
+
+  return acceptAmp;
 }
 
 int main(int argc, char const *argv[])
@@ -47,14 +61,10 @@ int main(int argc, char const *argv[])
   srand (time(NULL));
   for (int i=0; i < n; i++)
   {
-    temp_spin = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
+    S(i) = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
     if (temp_spin == 0)
     {
       S(i) = -1;
-    }
-    else
-    {
-      S(i) = 1;
     }
   }
 
@@ -73,6 +83,7 @@ int main(int argc, char const *argv[])
     energies(i) = energy_calc(S);
     dE = energies(i) - energies(i-1);
 
+    // Metropolis algorithm
     if (dE > 0)
     {
       // compare w with random number r
