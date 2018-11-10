@@ -28,7 +28,7 @@ void flip(imat& S)        // function to flip a random spin
 
 map<double, double> transitions(double T)
 {
-  map<double, double> acceptAmp; // Dictionary-like data structure
+  map<double, double> acceptAmp; // similar to python dictionary
 
   for (int dE = -8; dE <= 8; dE += 4)
   {
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
   double T = 1;
 
   imat S(L,L);
-  vec energies = zeros(numMC);
+  vec E = zeros(numMC);
   vec Cvs = zeros(numMC);
 
   double dE, Cv, M, new_E, w, r;
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
 
   random_device rd;  //Will be used to obtain a seed for the random number engine
   mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-  uniform_real_distribution<> dis(0.0, 1.0);
+  uniform_real_distribution<> dist(0, 1);
 
   // Generate L*L matrix with spins -1 or 1
   srand (time(NULL));
@@ -71,8 +71,8 @@ int main(int argc, char const *argv[])
   cout << S << endl;
 
   // Initial energy
-  double E = energy_calc(S);
-  energies(0) = E;
+  double E_0 = energy_calc(S);
+  E(0) = E_0;
 
   ofstream myfile;
   myfile.open ("ising_data.txt");
@@ -80,30 +80,29 @@ int main(int argc, char const *argv[])
   for (int i=1; i < numMC; i++)
   {
     flip(S);
-    energies(i) = energy_calc(S);
-    dE = energies(i) - energies(i-1);
+    E(i) = energy_calc(S);
+    dE = E(i) - E(i-1);
 
     // Metropolis algorithm
     if (dE > 0)
     {
       // compare w with random number r
       w = exp(-dE/T);
-      r = dis(gen);
+      r = dist(gen);
 
       // keep new configuration if true
       if (r <= w)
       {
-        energies(i) = energies(i);
+        E(i) = E(i);
       }
       else
       {
-        energies(i) = energies(i-1);
+        E(i) = E(i-1);
       }
 
     }
 
-    myfile << energies(i) << ' ' << energies(i) << endl;
-
+    myfile << E(i) << ' ' << E(i) << endl;
   }
 
   cout << S << endl;
