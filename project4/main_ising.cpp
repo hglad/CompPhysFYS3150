@@ -9,11 +9,11 @@
 using namespace std;
 using namespace arma;
 
-inline double energy_calc(mat S) {return -(2*S(0)*S(1) + 2*S(0)*S(2) + 2*S(1)*S(3) + 2*S(2)*S(3));}
+inline double energy_calc(imat S) {return -(2*S(0)*S(1) + 2*S(0)*S(2) + 2*S(1)*S(3) + 2*S(2)*S(3));}
 
 inline int PBC(int index, int max, int add) {return (index + max + add) % max ;}
 
-void init_params(mat S, double &E, double &M)
+void init_params(imat S, double &E, double &M)
 {
   int L = S.n_cols;
   for (int x=0; x < L; x++)
@@ -41,13 +41,13 @@ map<double, double> transitions(double T)
 
 int main(int argc, char const *argv[])
 {
-  int numMC = 50000;     // num. of MC-cycles
-  int L = 20;  int n = L*L;
+  int numMC = 100000;     // num. of MC-cycles
+  int L = 2;  int n = L*L;
   //int temp_spin;
   double T = 1;
 
-  mat S(L,L);
-  double r, M;
+  imat S(L,L);
+  double r, E_0, magmom;
   int x, y, dE;
 
   random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -66,11 +66,9 @@ int main(int argc, char const *argv[])
       S(i) = -1;
     }
   }
-  S.fill(1.0);
+  S.fill(1);
 
   // Initial energy
-  double E_0 = 0;
-  double magmom = 0;
   init_params(S, E_0, magmom);
   cout << E_0 << endl;
   double energy = E_0;
@@ -99,7 +97,7 @@ int main(int argc, char const *argv[])
         if (r <= w.find(dE)->second)
         {
           counter += 1;
-          S(x, y) *= -1.;           // flip spin
+          S(x, y) *= -1;           // flip spin
           energy += dE;
       //    cout << energy << endl;
           magmom += S(x, y);
@@ -114,20 +112,21 @@ int main(int argc, char const *argv[])
     ExpectVals(3) += magmom*magmom;
     ExpectVals(4) += fabs(magmom);
   }
-  // double E, E2, M2, absM, C_V, chi;
-  // E = (double) energy/numMC;
-  // E2 = energy*energy/numMC;
-  // M = magmom/numMC;
-  // absM = abs(magmom)/numMC;
-  // M2 = magmom*magmom/numMC;
-  //
-  // C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
-  // chi = (M2 - M*M)/(T*pow(L,2));
+  double E, E2, M, M2, absM, C_V, chi;
+  
+  // Compute expectation values
+  E  = ExpectVals(0)/numMC;
+  E2 = ExpectVals(1)/numMC;
+  M  = ExpectVals(2)/numMC;
+  M2 = ExpectVals(3)/numMC;
+
+  C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
+  chi = (M2 - M*M)/(T*pow(L,2));
 
   cout << ExpectVals/numMC << endl;
   //cout << counter << endl;
   // cout << "---" << endl;
-  // cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+  cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
   myfile.close();
 
