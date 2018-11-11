@@ -9,11 +9,11 @@
 using namespace std;
 using namespace arma;
 
-inline double energy_calc(imat S) {return -(2*S(0)*S(1) + 2*S(0)*S(2) + 2*S(1)*S(3) + 2*S(2)*S(3));}
+inline double energy_calc(mat S) {return -(2*S(0)*S(1) + 2*S(0)*S(2) + 2*S(1)*S(3) + 2*S(2)*S(3));}
 
 inline int PBC(int index, int max, int add) {return (index + max + add) % max ;}
 
-void init_params(imat S, double &E, double &M)
+void init_params(mat S, double &E, double &M)
 {
   int L = S.n_cols;
   for (int x=0; x < L; x++)
@@ -24,13 +24,6 @@ void init_params(imat S, double &E, double &M)
       E -= S(x, y)*( S(PBC(x, L, -1), y) + S(x, PBC(y, L, -1)));
     }
   }
-}
-
-void newPos(int &x, int &y, int L)
-{
-  x = rand() % L;
-  y = rand() % L;
-  return;
 }
 
 map<double, double> transitions(double T)
@@ -48,19 +41,19 @@ map<double, double> transitions(double T)
 
 int main(int argc, char const *argv[])
 {
-  int numMC = 100000;     // num. of MC-cycles
-  int L = 2;  int n = L*L;
+  int numMC = 50000;     // num. of MC-cycles
+  int L = 20;  int n = L*L;
   //int temp_spin;
   double T = 1;
 
-  imat S(L,L);
-  double dE, r, M;
-  int x, y;
+  mat S(L,L);
+  double r, M;
+  int x, y, dE;
 
   random_device rd;  //Will be used to obtain a seed for the random number engine
   mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
   //mt19937_64 gen(rd());
-  uniform_real_distribution<double> dist(0, 1);
+  uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
 
   // Generate L*L matrix with spins -1 or 1
@@ -73,7 +66,7 @@ int main(int argc, char const *argv[])
       S(i) = -1;
     }
   }
-  S.fill(1);
+  S.fill(1.0);
 
   // Initial energy
   double E_0 = 0;
@@ -88,14 +81,14 @@ int main(int argc, char const *argv[])
 
   int counter;
   map<double, double> w = transitions(T);
+  vec ExpectVals = zeros<vec>(5);
 
-  for (int k=1; k < numMC; k++)
+  for (int k=1; k <= numMC; k++)
   {
     for (int i = 0; i < L; i++)
     {
       for (int j = 0; j < L; j++)
       {
-      //  newPos(x, y, L);   // new random position in lattice
         x = RNGpos(gen);
         y = RNGpos(gen);
         dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
@@ -108,27 +101,33 @@ int main(int argc, char const *argv[])
           counter += 1;
           S(x, y) *= -1.;           // flip spin
           energy += dE;
-          cout << energy << endl;
+      //    cout << energy << endl;
           magmom += S(x, y);
           }
       }
     }
 
     myfile << energy << ' ' << fabs(magmom) << endl;
+    ExpectVals(0) += energy;
+    ExpectVals(1) += energy*energy;
+    ExpectVals(2) += magmom;
+    ExpectVals(3) += magmom*magmom;
+    ExpectVals(4) += fabs(magmom);
   }
-  double E, E2, M2, absM, C_V, chi;
-  E = energy/numMC;
-  E2 = energy*energy/numMC;
-  M = magmom/numMC;
-  absM = abs(magmom)/numMC;
-  M2 = magmom*magmom/numMC;
+  // double E, E2, M2, absM, C_V, chi;
+  // E = (double) energy/numMC;
+  // E2 = energy*energy/numMC;
+  // M = magmom/numMC;
+  // absM = abs(magmom)/numMC;
+  // M2 = magmom*magmom/numMC;
+  //
+  // C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
+  // chi = (M2 - M*M)/(T*pow(L,2));
 
-  C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
-  chi = (M2 - M*M)/(T*pow(L,2));
-
+  cout << ExpectVals/numMC << endl;
   //cout << counter << endl;
-  cout << "---" << endl;
-  cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+  // cout << "---" << endl;
+  // cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
   myfile.close();
 
@@ -137,7 +136,7 @@ int main(int argc, char const *argv[])
 }
 
 /*
-  void flip(imat& S)        // function to flip a random spin
+  void flip(mat& S)        // function to flip a random spin
   {
     int n = S.n_elem;
     int rand_pos = rand() % n;
