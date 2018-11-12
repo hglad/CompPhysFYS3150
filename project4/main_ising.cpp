@@ -27,6 +27,19 @@ void init_params(imat S, double &E, double &M)
   }
 }
 
+void write_params(vec A)
+{
+  ofstream myfile;
+  myfile.open ("ising_data.txt");
+
+  for (int i=0; i < A.n_elem; i++)
+  {
+    myfile << A[i] << endl;
+  }
+  myfile.close();
+  return;
+}
+
 void rand_spins(imat &S)
 {
   // Generate L*L matrix with spins -1 or 1
@@ -71,8 +84,8 @@ int main(int argc, char* argv[])
   int x, y, dE;
 
   random_device rd;  //Will be used to obtain a seed for the random number engine
-  mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
-  //mt19937_64 gen(rd());
+  //mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
+  mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
 
@@ -80,14 +93,17 @@ int main(int argc, char* argv[])
   S.fill(1);              // ordered state
   init_params(S, energy, magmom);
 
-  ofstream myfile;
-  myfile.open ("ising_data.txt");
-  myfile << energy << ' ' << magmom << endl;
+
+//  myfile << energy << ' ' << magmom << endl;
 
   int counter;
   map<double, double> w = transitions(T);     // create dictionary
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
   vec TotalSums = zeros<vec>(5);
+
+  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
+  vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
+  vec absMagmom = zeros(numMC);
 
   // Initialize parallellization
   int numprocs, my_rank;
@@ -102,9 +118,9 @@ int main(int argc, char* argv[])
 
   // Find number of MC cycles based on number of processes used
   int no_intervalls = numMC/numprocs;
-  int myloop_begin = my_rank*no_intervalls + 1;
-  int myloop_end = (my_rank+1)*no_intervalls;
-  if ( (my_rank == numprocs-1) &&( myloop_end < numMC) ) myloop_end = numMC;
+  int mc_start = my_rank*no_intervalls + 1;
+  int mc_end = (my_rank + 1)*no_intervalls;
+  if ( (my_rank == numprocs-1) &&( mc_end < numMC) ) mc_end = numMC;
 
   // Broadcast variables to allow for parallellization
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -112,9 +128,10 @@ int main(int argc, char* argv[])
   MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   //int local_n = n/numprocs;
+  int local_k = my_rank*(numMC/numprocs);   //local start index for processor
 
   //for (int k=1; k <= numMC; k++)
-  for (int k = myloop_begin; k <= myloop_end; k++)
+  for (int k = mc_start; k < mc_end; k++)
   {
     for (int i = 0; i < L; i++)
     {
@@ -137,9 +154,14 @@ int main(int argc, char* argv[])
       }
     }
 
+    //cout << k << endl;
+    Energy(k) = energy;
+  //  myfile << energy << ' ' << magmom << endl;
+
     ValueSums(0) += energy; ValueSums(1) += energy*energy;
     ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
     ValueSums(4) += fabs(magmom);
+
   }
 
   // Add all contributions to master node (rank 0)
@@ -175,8 +197,9 @@ int main(int argc, char* argv[])
     cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
   }
 
-  myfile.close();
   MPI_Finalize ();
+
+  write_params(Energy);
   return 0;
 }
 
