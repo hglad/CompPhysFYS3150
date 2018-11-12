@@ -59,8 +59,9 @@ map<double, double> transitions(double T)
 // Begin main
 int main(int argc, char* argv[])
 {
-  int numMC = 100000;     // num. of MC-cycles
-  int L = 2;  int n = L*L;
+  int numMC = atoi(argv[1]);     // num. of MC-cycles
+  int L = atoi(argv[2]);
+  int n = L*L;
   //int temp_spin;
   double T = 1;
 
@@ -85,9 +86,10 @@ int main(int argc, char* argv[])
 
   int counter;
   map<double, double> w = transitions(T);     // create dictionary
-  vec ExpectVals = zeros<vec>(5);
+  vec ValueSums = zeros<vec>(5);              // sum of various parameters
+  vec TotalSums = zeros<vec>(5);
 
-  // Parallellization
+  // Initialize parallellization
   int numprocs, my_rank;
   double initial_temp, final_temp, temp_step;
   double time_start, time_end, total_time;
@@ -109,7 +111,7 @@ int main(int argc, char* argv[])
   MPI_Bcast (&initial_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  int local_n = n/numprocs;
+  //int local_n = n/numprocs;
 
   //for (int k=1; k <= numMC; k++)
   for (int k = myloop_begin; k <= myloop_end; k++)
@@ -131,46 +133,40 @@ int main(int argc, char* argv[])
           S(x, y) *= -1;           // flip spin
           energy  += dE;
           magmom  += S(x, y);
-          }
+        }
       }
     }
-    /*
-    if (my_rank == 0)
-    {
-      myfile << energy << ' ' << fabs(magmom) << endl;
-    }
-    */
-    ExpectVals(0) += energy; ExpectVals(1) += energy*energy;
-    ExpectVals(2) += magmom; ExpectVals(3) += magmom*magmom;
-    ExpectVals(4) += fabs(magmom);
+
+    ValueSums(0) += energy; ValueSums(1) += energy*energy;
+    ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
+    ValueSums(4) += fabs(magmom);
   }
 
-  // Compute expectation values
+  // Add all contributions to master node (rank 0)
   for (int i = 0; i < 5; i++)
   {
-    MPI_Reduce(&ExpectVals[i], &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&ValueSums(i), &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
   }
 
+  // Compute expectation values from master node
   if (my_rank == 0)
   {
     for (int i = 0; i < 5; i++)
     {
       cout << total[i]/(numMC) << endl;
     }
+    E    = total[0]/numMC;
+    E2   = total[1]/numMC;
+    M    = total[2]/numMC;
+    M2   = total[3]/numMC;
+    absM = total[4]/numMC;
 
+    C_V = (E2 - E*E)/(T*T*n);
+    chi = (M2 - M*M)/(T*n);
+
+    cout << "---" << endl;
+    cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
   }
-  /*
-  E  = ExpectVals(0)/numMC;
-  E2 = ExpectVals(1)/numMC;
-  M  = ExpectVals(2)/numMC;
-  M2 = ExpectVals(3)/numMC;
-  */
-  C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
-  chi = (M2 - M*M)/(T*pow(L,2));
-
-//  cout << ExpectVals/numMC << endl;
-  // cout << "---" << endl;
-//  cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
   time_end = MPI_Wtime();
   total_time = time_end - time_start;
@@ -181,10 +177,10 @@ int main(int argc, char* argv[])
 
   myfile.close();
   MPI_Finalize ();
-
   return 0;
-
 }
+
+// Old code
 /*
   void flip(mat& S)        // function to flip a random spin
   {
@@ -193,4 +189,16 @@ int main(int argc, char* argv[])
     S(rand_pos) *= -1;      // changing sign --> flipping spin
     return;
   }
+
+
+if (my_rank == 0)
+{
+//  myfile << energy << ' ' << fabs(magmom) << endl;
+  MPI_Recv(TotalSums, 5, MPI_DOUBLE, source=my_rank, 100, MPI_COMM_WORLD);
+}
+else
+{
+  MPI_Send(ValueSums, 5, MPI_DOUBLE, dest=0, 100, MPI_COMM_WORLD);
+}
+// Sum up results of MC cycle
 */
