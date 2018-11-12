@@ -5,6 +5,7 @@
 #include <random>
 #include <fstream>
 #include <map>
+#include <mpi.h>
 
 using namespace std;
 using namespace arma;
@@ -26,6 +27,21 @@ void init_params(imat S, double &E, double &M)
   }
 }
 
+void rand_spins(imat &S)
+{
+  // Generate L*L matrix with spins -1 or 1
+  srand (time(NULL));
+  int n = S.n_elem;
+  for (int i=0; i < n; i++)
+  {
+    S(i) = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
+    if (S(i) == 0)
+    {
+      S(i) = -1;
+    }
+  }
+}
+
 map<double, double> transitions(double T)
 {
   map<double, double> possible_E; // similar to python dictionary
@@ -39,7 +55,8 @@ map<double, double> transitions(double T)
   return possible_E;
 }
 
-int main(int argc, char const *argv[])
+
+int main(int argc, char* argv[])
 {
   int numMC = 100000;     // num. of MC-cycles
   int L = 2;  int n = L*L;
@@ -56,19 +73,8 @@ int main(int argc, char const *argv[])
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
 
-  // Generate L*L matrix with spins -1 or 1
-  srand (time(NULL));
-  for (int i=0; i < n; i++)
-  {
-    S(i) = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
-    if (S(i) == 0)
-    {
-      S(i) = -1;
-    }
-  }
-  S.fill(1);
-
-  // Initial energy
+  // Initial values
+  S.fill(1);              // ordered state
   init_params(S, E_0, magmom);
   cout << E_0 << endl;
   double energy = E_0;
@@ -78,8 +84,30 @@ int main(int argc, char const *argv[])
   myfile << E_0 << ' ' << magmom << endl;
 
   int counter;
-  map<double, double> w = transitions(T);
+  map<double, double> w = transitions(T);     // create dictionary
   vec ExpectVals = zeros<vec>(5);
+
+  // Parallellization
+  int numprocs, my_rank;
+  double initial_temp, final_temp, temp_step;
+  double time_start, time_end, total_time;
+  double average[5], total_average[5];
+
+  MPI_Init (&argc, &argv);
+  MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
+  MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
+  time_start = MPI_Wtime();
+
+  int no_intervalls = numMC/numprocs;
+  int myloop_begin = my_rank*no_intervalls + 1;
+  int myloop_end = (my_rank+1)*no_intervalls;
+  if ( (my_rank == numprocs-1) &&( myloop_end < numMC) ) myloop_end = numMC;
+
+  MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&initial_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  int local_n = n/numprocs;
 
   for (int k=1; k <= numMC; k++)
   {
@@ -94,13 +122,12 @@ int main(int argc, char const *argv[])
         // Metropolis algorithm
         // compare w with random number r
         r = dist(gen);
-        if (r <= w.find(dE)->second)
+        if (r <= w.find(dE)->second)    // find corresponding energy to dE
         {
           counter += 1;
           S(x, y) *= -1;           // flip spin
-          energy += dE;
-      //    cout << energy << endl;
-          magmom += S(x, y);
+          energy  += dE;
+          magmom  += S(x, y);
           }
       }
     }
@@ -111,24 +138,37 @@ int main(int argc, char const *argv[])
     ExpectVals(2) += magmom;
     ExpectVals(3) += magmom*magmom;
     ExpectVals(4) += fabs(magmom);
+
   }
   double E, E2, M, M2, absM, C_V, chi;
-  
+
   // Compute expectation values
+  for (int i = 0; i < 5; i++)
+  {
+    MPI_Reduce(&ExpectVals[i], &total_average[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  }
+  /*
   E  = ExpectVals(0)/numMC;
   E2 = ExpectVals(1)/numMC;
   M  = ExpectVals(2)/numMC;
   M2 = ExpectVals(3)/numMC;
-
+  */
   C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
   chi = (M2 - M*M)/(T*pow(L,2));
 
   cout << ExpectVals/numMC << endl;
-  //cout << counter << endl;
   // cout << "---" << endl;
   cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
   myfile.close();
+  time_end = MPI_Wtime();
+  total_time = time_end - time_start;
+  if ( my_rank == 0)
+  {
+    cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
+  }
+
+  MPI_Finalize ();
 
   return 0;
 
