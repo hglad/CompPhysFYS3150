@@ -56,6 +56,7 @@ map<double, double> transitions(double T)
 }
 
 
+// Begin main
 int main(int argc, char* argv[])
 {
   int numMC = 100000;     // num. of MC-cycles
@@ -64,7 +65,8 @@ int main(int argc, char* argv[])
   double T = 1;
 
   imat S(L,L);
-  double r, E_0, magmom;
+  double r, energy, magmom;
+  double E, E2, M, M2, absM, C_V, chi;
   int x, y, dE;
 
   random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -75,13 +77,11 @@ int main(int argc, char* argv[])
 
   // Initial values
   S.fill(1);              // ordered state
-  init_params(S, E_0, magmom);
-  cout << E_0 << endl;
-  double energy = E_0;
+  init_params(S, energy, magmom);
 
   ofstream myfile;
   myfile.open ("ising_data.txt");
-  myfile << E_0 << ' ' << magmom << endl;
+  myfile << energy << ' ' << magmom << endl;
 
   int counter;
   map<double, double> w = transitions(T);     // create dictionary
@@ -91,25 +91,28 @@ int main(int argc, char* argv[])
   int numprocs, my_rank;
   double initial_temp, final_temp, temp_step;
   double time_start, time_end, total_time;
-  double average[5], total_average[5];
+  double average[5], total[5];
 
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
   MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
   time_start = MPI_Wtime();
 
+  // Find number of MC cycles based on number of processes used
   int no_intervalls = numMC/numprocs;
   int myloop_begin = my_rank*no_intervalls + 1;
   int myloop_end = (my_rank+1)*no_intervalls;
   if ( (my_rank == numprocs-1) &&( myloop_end < numMC) ) myloop_end = numMC;
 
+  // Broadcast variables to allow for parallellization
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&initial_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   int local_n = n/numprocs;
 
-  for (int k=1; k <= numMC; k++)
+  //for (int k=1; k <= numMC; k++)
+  for (int k = myloop_begin; k <= myloop_end; k++)
   {
     for (int i = 0; i < L; i++)
     {
@@ -131,21 +134,30 @@ int main(int argc, char* argv[])
           }
       }
     }
-
-    myfile << energy << ' ' << fabs(magmom) << endl;
-    ExpectVals(0) += energy;
-    ExpectVals(1) += energy*energy;
-    ExpectVals(2) += magmom;
-    ExpectVals(3) += magmom*magmom;
+    /*
+    if (my_rank == 0)
+    {
+      myfile << energy << ' ' << fabs(magmom) << endl;
+    }
+    */
+    ExpectVals(0) += energy; ExpectVals(1) += energy*energy;
+    ExpectVals(2) += magmom; ExpectVals(3) += magmom*magmom;
     ExpectVals(4) += fabs(magmom);
-
   }
-  double E, E2, M, M2, absM, C_V, chi;
 
   // Compute expectation values
   for (int i = 0; i < 5; i++)
   {
-    MPI_Reduce(&ExpectVals[i], &total_average[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&ExpectVals[i], &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  }
+
+  if (my_rank == 0)
+  {
+    for (int i = 0; i < 5; i++)
+    {
+      cout << total[i]/(numMC) << endl;
+    }
+
   }
   /*
   E  = ExpectVals(0)/numMC;
@@ -156,11 +168,10 @@ int main(int argc, char* argv[])
   C_V = (E2 - E*E)/(pow(T,2)*pow(L,2));
   chi = (M2 - M*M)/(T*pow(L,2));
 
-  cout << ExpectVals/numMC << endl;
+//  cout << ExpectVals/numMC << endl;
   // cout << "---" << endl;
-  cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+//  cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
-  myfile.close();
   time_end = MPI_Wtime();
   total_time = time_end - time_start;
   if ( my_rank == 0)
@@ -168,12 +179,12 @@ int main(int argc, char* argv[])
     cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
   }
 
+  myfile.close();
   MPI_Finalize ();
 
   return 0;
 
 }
-
 /*
   void flip(mat& S)        // function to flip a random spin
   {
