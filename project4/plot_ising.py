@@ -23,7 +23,7 @@ x = np.linspace(0, len(E)-1, len(E))        # MC-cycles
 
 plt.plot(x, E)
 plt.grid('on'); plt.ylabel('E')
-
+"""
 plt.figure()
 plt.plot(x, M)
 plt.grid('on'); plt.ylabel('M')
@@ -35,7 +35,7 @@ plt.grid('on'); plt.ylabel('Cv')
 plt.figure()
 plt.plot(x, Chi)
 plt.grid('on'); plt.ylabel('Chi')
-
+"""
 # Analytical values
 E_ = -np.sinh(8)*8 / (3 + np.cosh(8))
 Cv_ = T**(-2) * (64*np.cosh(8)*(3 + np.cosh(8)) - 8*np.sinh(8)*8*np.sinh(8)) / (3 + np.cosh(8))**2

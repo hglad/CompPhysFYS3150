@@ -74,7 +74,8 @@ void MC_cycle(int& test, mat &S, int L, int& counter, double& energy, double& ma
       }
     }
   }
-  cout << S(x, y) << endl;
+  //cout << S(x, y) << endl;
+  cout << energy << endl;
   test += 1;
   return;
 }
@@ -106,6 +107,13 @@ int main(int argc, char* argv[])
   double E, E2, M, M2, absM, C_V, chi;
   int x, y, dE;
 
+  vec ValueSums = zeros<vec>(5);              // sum of various parameters
+  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
+  vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
+  vec absMagmom = zeros(numMC);
+  vec Cv = zeros(numMC);
+  vec Chi = zeros(numMC);
+
   random_device rd;  //Will be used to obtain a seed for the random number engine
   mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
   //mt19937_64 gen(rd());
@@ -119,13 +127,6 @@ int main(int argc, char* argv[])
 //  myfile << energy << ' ' << magmom << endl;
   int counter;
   map<double, double> w = transitions(T);     // create dictionary
-  vec ValueSums = zeros<vec>(5);              // sum of various parameters
-
-  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
-  vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
-  vec absMagmom = zeros(numMC);
-  vec Cv = zeros(numMC);
-  vec Chi = zeros(numMC);
 
   Energy(0) = energy; Magmom(0) = magmom;
   cout << Energy(0) << endl;
@@ -157,29 +158,11 @@ int main(int argc, char* argv[])
   MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
+  int test = 1;
 
   for (int k = mc_start; k < mc_end; k++)
   {
-    for (int i = 0; i < L; i++)
-    {
-      for (int j = 0; j < L; j++)
-      {
-        x = RNGpos(gen);
-        y = RNGpos(gen);
-        dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
-
-        // Metropolis algorithm
-        // compare w with random number r
-        r = dist(gen);
-        if (r <= w.find(dE)->second)    // find corresponding energy to dE
-        {
-          counter += 1;
-          S(x, y) *= -1;           // flip spin
-          energy  += dE;
-          magmom  += S(x, y);
-        }
-      }
-    }
+    MC_cycle(test, S, L, counter, energy, magmom, w, x, y, r);
 
     Energy(k) = energy;
     Energy2(k) = energy*energy;
@@ -209,7 +192,7 @@ int main(int argc, char* argv[])
   if (my_rank == 0)
   {
     write_params(Energy, Magmom);
-    cout << Energy << endl;
+    //cout << Energy << endl;
     E    = total[0]/numMC;
     E2   = total[1]/numMC;
     M    = total[2]/numMC;
@@ -218,7 +201,7 @@ int main(int argc, char* argv[])
 
     C_V = (E2 - E*E)/(T*T*n);
     chi = (M2 - M*M)/(T*n);
-
+    cout << counter << ' ' << test << endl;
     cout << "---" << endl;
     cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
   }
@@ -237,14 +220,3 @@ int main(int argc, char* argv[])
   //Energy.save("ising_data.txt", arma_ascii);
   return 0;
 }
-
-// Old code
-/*
-  void flip(mat& S)        // function to flip a random spin
-  {
-    int n = S.n_elem;
-    int rand_pos = rand() % n;
-    S(rand_pos) *= -1;      // changing sign --> flipping spin
-    return;
-  }
-*/
