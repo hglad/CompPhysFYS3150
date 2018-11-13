@@ -40,7 +40,7 @@ void write_params(vec A, vec B)
   return;
 }
 
-void rand_spins(imat &S)
+void rand_spins(mat &S)
 {
   // Generate L*L matrix with spins -1 or 1
   srand (time(NULL));
@@ -55,16 +55,21 @@ void rand_spins(imat &S)
   }
 }
 
-void MC_cycle(int& test, mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, int x, int y, double r)
+void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, mt19937_64 &gen)
 {     // a single MC cycle
+  uniform_int_distribution<int> RNGpos(0, L-1);
+  uniform_real_distribution<double> dist(0.0, 1.0);
   for (int i = 0; i < L; i++)
   {
     for (int j = 0; j < L; j++)
     {
+      int x = RNGpos(gen);
+      int y = RNGpos(gen);
       double dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
   //    cout << dE << endl;
       // Metropolis algorithm
       // compare w with random number r
+      double r = dist(gen);
       if (r <= w.find(dE)->second)    // find corresponding energy to dE
       {
         counter += 1;
@@ -75,8 +80,6 @@ void MC_cycle(int& test, mat &S, int L, int& counter, double& energy, double& ma
     }
   }
   //cout << S(x, y) << endl;
-  cout << energy << endl;
-  test += 1;
   return;
 }
 
@@ -121,7 +124,9 @@ int main(int argc, char* argv[])
   uniform_int_distribution<int> RNGpos(0, L-1);
 
   // Initial values
-  S.fill(1);              // ordered state
+  //S.fill(1);              // ordered state
+  rand_spins(S);
+
   init_params(S, energy, magmom);   // initial energy, magnetic momentum
 
 //  myfile << energy << ' ' << magmom << endl;
@@ -162,7 +167,7 @@ int main(int argc, char* argv[])
 
   for (int k = mc_start; k < mc_end; k++)
   {
-    MC_cycle(test, S, L, counter, energy, magmom, w, x, y, r);
+    MC_cycle(S, L, counter, energy, magmom, w, gen);
 
     Energy(k) = energy;
     Energy2(k) = energy*energy;
@@ -201,7 +206,6 @@ int main(int argc, char* argv[])
 
     C_V = (E2 - E*E)/(T*T*n);
     chi = (M2 - M*M)/(T*n);
-    cout << counter << ' ' << test << endl;
     cout << "---" << endl;
     cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
   }
