@@ -24,6 +24,7 @@ void init_params(mat S, double &E, double &M)
       E -= S(x, y)*( S(PBC(x, L, -1), y) + S(x, PBC(y, L, -1)));
     }
   }
+  return;
 }
 
 void write_params(vec A, vec B)
@@ -52,6 +53,30 @@ void rand_spins(imat &S)
       S(i) = -1;
     }
   }
+  return;
+}
+
+void MC_cycle(int& test, mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, int x, int y, double r)
+{     // a single MC cycle
+  for (int i = 0; i < L; i++)
+  {
+    for (int j = 0; j < L; j++)
+    {
+      double dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
+  //    cout << dE << endl;
+      // Metropolis algorithm
+      // compare w with random number r
+      if (r <= w.find(dE)->second)    // find corresponding energy to dE
+      {
+        counter += 1;
+        S(x, y)  *= -1;           // flip spin
+        energy  += dE;
+        magmom  += S(x, y);
+      }
+    }
+  }
+  cout << S(x, y) << endl;
+  return;
 }
 
 map<double, double> transitions(double T)
@@ -75,7 +100,7 @@ int main(int argc, char* argv[])
   int L = atoi(argv[2]);
   int n = L*L;
   //int temp_spin;
-  double T = 1;
+  double T = atof(argv[3]);
 
   mat S(L,L);
   double r, energy, magmom;
@@ -94,7 +119,7 @@ int main(int argc, char* argv[])
 
 //  myfile << energy << ' ' << magmom << endl;
 
-  int counter;
+  int counter = 0;
   map<double, double> w = transitions(T);     // create dictionary
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
   vec TotalSums = zeros<vec>(5);
@@ -104,45 +129,28 @@ int main(int argc, char* argv[])
   vec absMagmom = zeros(numMC);
   Energy(0) = energy; Magmom(0) = magmom;
 
-  double average[5], total[5];
+  ofstream myfile;
+  myfile.open ("ising_data.txt");
+  myfile << energy << ' ' << magmom << endl;
 
-  //for (int k=1; k <= numMC; k++)
-  for (int k = 0; k < numMC; k++)
+  for (int k = 1; k < numMC; k++)
   {
-    for (int i = 0; i < L; i++)
-    {
-      for (int j = 0; j < L; j++)
-      {
-        x = RNGpos(gen);
-        y = RNGpos(gen);
-        dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
+    x = RNGpos(gen);
+    y = RNGpos(gen);
+    r = dist(gen);
+    MC_cycle(S, L, counter, energy, magmom, w, x, y, r);
 
-        // Metropolis algorithm
-        // compare w with random number r
-        r = dist(gen);
-        if (r <= w.find(dE)->second)    // find corresponding energy to dE
-        {
-          counter += 1;
-          S(x, y) *= -1;           // flip spin
-          energy  += dE;
-          magmom  += S(x, y);
-        }
-      }
-    }
-  //  cout << energy << endl;
-    //cout << k << endl;
-    Energy(k) = energy;
-    Magmom(k) = magmom;
-  //  myfile << energy << ' ' << magmom << endl;
+    myfile << energy << ' ' << magmom << endl;
+    //cout << energy << endl;
+    //cout << S << endl;
 
     ValueSums(0) += energy; ValueSums(1) += energy*energy;
     ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
     ValueSums(4) += fabs(magmom);
-  }
+  } //end for
 
-  // Compute expectation values
-  for (int i = 0; i < 5; i++)
-  {
+  cout << counter << endl;
+  // Compute expectation values (mean)
 
     E    = ValueSums(0)/numMC;
     E2   = ValueSums(1)/numMC;
@@ -155,11 +163,9 @@ int main(int argc, char* argv[])
 
     cout << "---" << endl;
     cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
-  }
 
   //write_params(Energy, Magmom);
-
-  Energy.save("ising_data.txt", arma_ascii);
-
+  //Energy.save("ising_data.txt", arma_ascii);
+  myfile.close();
   return 0;
 }
