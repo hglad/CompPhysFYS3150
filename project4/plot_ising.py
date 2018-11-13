@@ -1,15 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-infile = open("ising_data.txt", 'r')
+E = np.loadtxt("ising_data.txt", skiprows=2)
+#M = np.loadtxt("ising_data.txt", usecols=2, skiprows=2)
+T = 1.
+"""
 E = []
 M = []
-T = 1.
+
 for line in infile:
     cols = line.split(' ')
     E.append(float(cols[0]))
-#    M.append(float(cols[1]))
+    M.append(float(cols[1]))
 
+"""
 x = np.linspace(0, len(E)-1, len(E))        # MC-cycles
 
 plt.plot(x, E)

@@ -5,6 +5,7 @@
 #include <random>
 #include <fstream>
 #include <map>
+#include <mpi.h>
 
 using namespace std;
 using namespace arma;
@@ -104,10 +105,36 @@ int main(int argc, char* argv[])
   vec absMagmom = zeros(numMC);
   Energy(0) = energy; Magmom(0) = magmom;
 
+  // Initialize parallellization
+  int numprocs, my_rank;
+  double initial_temp, final_temp, temp_step;
+  double time_start, time_end, total_time;
   double average[5], total[5];
 
+  MPI_Init (&argc, &argv);
+  MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
+  MPI_Comm_rank (MPI_COMM_WORLD, &my_rank);
+  time_start = MPI_Wtime();
+
+  // Find number of MC cycles based on number of processes used
+  int no_intervals = numMC/numprocs;
+  int mc_start = my_rank*no_intervals + 1;
+  int mc_end = (my_rank + 1)*no_intervals;
+  if ( (my_rank == numprocs-1) &&( mc_end < numMC) )
+  {
+    mc_end = numMC;
+  }
+
+  // Broadcast variables to allow for parallellization
+  MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&initial_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&final_temp, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  //int local_n = n/numprocs;
+  int local_k = my_rank*(numMC/numprocs);   //local start index for processor
+
   //for (int k=1; k <= numMC; k++)
-  for (int k = 0; k < numMC; k++)
+  for (int k = mc_start; k < mc_end; k++)
   {
     for (int i = 0; i < L; i++)
     {
@@ -140,15 +167,24 @@ int main(int argc, char* argv[])
     ValueSums(4) += fabs(magmom);
   }
 
-  // Compute expectation values
+  // Add all contributions to master node (rank 0)
   for (int i = 0; i < 5; i++)
   {
+    MPI_Reduce(&ValueSums(i), &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  }
 
-    E    = ValueSums(0)/numMC;
-    E2   = ValueSums(1)/numMC;
-    M    = ValueSums(2)/numMC;
-    M2   = ValueSums(3)/numMC;
-    absM = ValueSums(4)/numMC;
+  // Compute expectation values from master node
+  if (my_rank == 0)
+  {
+    for (int i = 0; i < 5; i++)
+    {
+      cout << total[i]/(numMC) << endl;
+    }
+    E    = total[0]/numMC;
+    E2   = total[1]/numMC;
+    M    = total[2]/numMC;
+    M2   = total[3]/numMC;
+    absM = total[4]/numMC;
 
     C_V = (E2 - E*E)/(T*T*n);
     chi = (M2 - M*M)/(T*n);
@@ -157,9 +193,41 @@ int main(int argc, char* argv[])
     cout << E << ' ' << M << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
   }
 
+  time_end = MPI_Wtime();
+  total_time = time_end - time_start;
+  if ( my_rank == 0)
+  {
+    cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
+  }
+
+  MPI_Finalize ();
+  cout << Energy << endl;
   //write_params(Energy, Magmom);
 
   Energy.save("ising_data.txt", arma_ascii);
 
   return 0;
 }
+
+// Old code
+/*
+  void flip(mat& S)        // function to flip a random spin
+  {
+    int n = S.n_elem;
+    int rand_pos = rand() % n;
+    S(rand_pos) *= -1;      // changing sign --> flipping spin
+    return;
+  }
+
+
+if (my_rank == 0)
+{
+//  myfile << energy << ' ' << fabs(magmom) << endl;
+  MPI_Recv(TotalSums, 5, MPI_DOUBLE, source=my_rank, 100, MPI_COMM_WORLD);
+}
+else
+{
+  MPI_Send(ValueSums, 5, MPI_DOUBLE, dest=0, 100, MPI_COMM_WORLD);
+}
+// Sum up results of MC cycle
+*/
