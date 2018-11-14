@@ -1,9 +1,8 @@
 #include "ising.h"
 //compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
 //run:     mpirun -n 1 ./main.x 20000 2 1 2.4 1
-// Begin main
+// arguments: numMC, L, T_start, T_end, random_init=1 or 0
 
-// arguments: numMC, L, T_start, T_end, random_init
 int main(int argc, char* argv[])
 {
   // ------ Initialize variables ------
@@ -19,7 +18,7 @@ int main(int argc, char* argv[])
   int counter;
 
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
-  vec Energy2 = zeros(numMC);
+  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
   vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
   vec absMagmom = zeros(numMC);
   vec Cv = zeros(numMC);
@@ -33,7 +32,9 @@ int main(int argc, char* argv[])
   uniform_int_distribution<int> RNGpos(0, L-1);
 
   // ------ Set up initial spins and initial energy, magnetization ------
-
+  mat S = init_spins(L, gen, rand_state);
+  init_params(S, energy, magmom);   // initial energy, magnetic momentum
+  Energy(0) = energy; Magmom(0) = magmom;
 
   // Initialize parallellization
   int numprocs, my_rank;
@@ -53,11 +54,8 @@ int main(int argc, char* argv[])
   {
     mc_end = numMC;
   }
-  double *Energy = new double[numMC];
-  mat S = init_spins(L, gen, rand_state);
-  init_params(S, energy, magmom);   // initial energy, magnetic momentum
-  Energy[0] = energy; Magmom(0) = magmom;
-  // Broadcast variables to allow for parallellization
+
+  // Broadcast variables
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_final, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -66,7 +64,6 @@ int main(int argc, char* argv[])
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final; T+=temp_step)
   {
-    cout << my_rank << endl;
     time_start = MPI_Wtime();
     map<double, double> w = transitions(T);     // create dictionary
 
@@ -74,7 +71,7 @@ int main(int argc, char* argv[])
     {
       MC_cycle(S, L, counter, energy, magmom, w, gen);
 
-      Energy[k] = energy;
+      Energy(k) = energy;
     //  Energy2(k) = energy*energy;
       Magmom(k) = magmom;
     //  Magmom2(k) = magmom*magmom;
@@ -92,43 +89,6 @@ int main(int argc, char* argv[])
       MPI_Reduce(&ValueSums(i), &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
-    time_end = MPI_Wtime();
-    total_time = time_end - time_start;
-    cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
-
-    if (my_rank != 0)
-    {
-      MPI_Send(Energy, numMC, MPI_DOUBLE, 0, 50, MPI_COMM_WORLD);
-    }
-
-    if (my_rank == 0)
-    {
-      double *energies = new double[numMC];
-      string temp = to_string(T);
-      MPI_Status status;
-      ofstream myfile;
-      myfile.open ("ising_arrays_" + temp + ".txt", ios_base::app);
-
-      for (int i=0; i < numMC; i++)
-      {
-          myfile << energies[i] << ' ' << Magmom(i) << endl;
-      }
-
-      for (int rank=1; rank < numprocs; rank++)
-      {
-        MPI_Recv(energies, numMC, MPI_DOUBLE, rank, 50, MPI_COMM_WORLD, &status);
-
-        for (int i=0; i < numMC; i++)
-        {
-          myfile << energies[i] << ' ' << Magmom(i) << endl;
-        }
-
-        //write_arrays(energies, Magmom, numMC, T);
-      }
-      myfile.close();
-
-    }
-
     // Compute expectation values from master node, write values
     if (my_rank == 0)
     {
@@ -144,14 +104,57 @@ int main(int argc, char* argv[])
       cout << "Results:" << endl;
       cout << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
-      write_means(E, absM, M2, C_V, chi, T);
+      time_end = MPI_Wtime();
+      total_time = time_end - time_start;
+      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
 
+      write_means(E, absM, M2, C_V, chi, T);
+      write_arrays(Energy, Magmom, numMC/numprocs, T);
+      // only plot values from one process
     }
   }
-
   MPI_Finalize();
 
-  cout << "Rank:" << ' ' << my_rank << endl;
   //Energy.save("ising_data.txt", arma_ascii);
   return 0;
 }
+
+// send/receive routine (unused)
+/*
+if (my_rank != 0)
+{
+  MPI_Send(Energy, numMC, MPI_DOUBLE, 0, 50, MPI_COMM_WORLD);
+}
+
+if (my_rank == 0)
+{
+  double *energies = new double[numMC];
+  string temp = to_string(T);
+  MPI_Status status;
+  ofstream myfile;
+  // open and close to clear previous contents of file
+  myfile.open ("ising_arrays_" + temp + ".txt");
+  myfile.close();
+
+  myfile.open ("ising_arrays_" + temp + ".txt", ios_base::app);
+
+  for (int i=0; i < numMC; i++)
+  {
+      myfile << energies[i] << ' ' << Magmom(i) << endl;
+  }
+
+  for (int rank=1; rank < numprocs; rank++)
+  {
+    MPI_Recv(energies, numMC, MPI_DOUBLE, rank, 50, MPI_COMM_WORLD, &status);
+
+    for (int i=0; i < numMC; i++)
+    {
+      myfile << energies[i] << ' ' << Magmom(i) << endl;
+    }
+
+    //write_arrays(energies, Magmom, numMC, T);
+  }
+  myfile.close();
+
+}
+*/

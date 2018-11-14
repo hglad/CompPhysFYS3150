@@ -18,7 +18,7 @@ void init_params(mat S, double &E, double &M)
   }
 }
 
-void write_arrays(double *A, vec B, int numMC, float T)
+void write_arrays(vec A, vec B, int numMC, float T)
 {
   string temp = to_string(T);
   ofstream myfile;
@@ -26,7 +26,7 @@ void write_arrays(double *A, vec B, int numMC, float T)
   //cout << A << endl;
   for (int i=0; i < numMC; i++)
   {
-    myfile << A[i] << ' ' << B(i) << endl;
+    myfile << A(i) << ' ' << B(i) << endl;
   }
   myfile.close();
   return;
