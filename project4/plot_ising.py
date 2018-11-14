@@ -1,48 +1,61 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
 
-E, M = np.loadtxt("ising_data.txt", usecols=(0,1), unpack=True, dtype='float')
-n = len(E)
-T = 1
-#E = np.loadtxt("ising_data.txt")
-#print E
-E2 = np.dot(E,E)
-M2 = np.dot(M,M)
+# Find files with results for different temperatures
+files = glob.glob('ising_arrays_*.txt')
+temps = []
 
-Cv = (E2 - E)/(T*T*n)
-Chi = (M2 - M)/(T*n)
+for file in files:
+    temps.append(float(file[13:16]))    # extract temperature from file name
 
-"""
-for line in infile:
-    cols = line.split(' ')
-    E.append(float(cols[0]))
-    M.append(float(cols[1]))
-"""
+# Sort temperatures because the 'files' list is not sorted correctly
+temps = np.sort(temps)
 
-x = np.linspace(0, len(E)-1, len(E))        # MC-cycles
+for T in temps:
+    file = ('ising_arrays_%s00000.txt' % str(T))
+    E, M = np.loadtxt(file, usecols=(0,1), unpack=True, dtype='float')
+    numMC = len(E)
+    #E = np.loadtxt("ising_data.txt")
+    #print E
+    E2 = np.dot(E,E)
+    M2 = np.dot(M,M)
 
-plt.plot(x, E)
-plt.grid('on'); plt.ylabel('E')
-"""
-plt.figure()
-plt.plot(x, M)
-plt.grid('on'); plt.ylabel('M')
+    #Cv = (E2 - E)/(T*T*numMC)
+    #Chi = (M2 - M)/(T*numMC)
+    """
+    for line in infile:
+        cols = line.split(' ')
+        E.append(float(cols[0]))
+        M.append(float(cols[1]))
+    """
+    x = np.linspace(0, len(E)-1, numMC)    # array for MC-cycles
 
-plt.figure()
-plt.plot(x, Cv)
-plt.grid('on'); plt.ylabel('Cv')
+    plt.figure()
+    plt.title('T = %1.2f [kT/J]' % T)
+    plt.plot(x, E)
+    plt.grid('on'); plt.ylabel('E [$Js^2$]'); plt.xlabel('MC-cycle')
+    """
+    plt.figure()
+    plt.plot(x, M)
+    plt.grid('on'); plt.ylabel('M'); plt.xlabel('MC-cycle')
 
-plt.figure()
-plt.plot(x, Chi)
-plt.grid('on'); plt.ylabel('Chi')
-"""
-# Analytical values
-E_ = -np.sinh(8)*8 / (3 + np.cosh(8))
-Cv_ = T**(-2) * (64*np.cosh(8)*(3 + np.cosh(8)) - 8*np.sinh(8)*8*np.sinh(8)) / (3 + np.cosh(8))**2
-M2_ = (8*np.exp(8) + 8)/(3 + np.cosh(8))
-absM_ = (2*np.exp(8) + 4)/(3 + np.cosh(8))
-chi_ = M2_/T
+    plt.figure()
+    plt.plot(x, Cv)
+    plt.grid('on'); plt.ylabel('Cv')
 
-print E_, absM_, M2_, Cv_, chi_
+    plt.figure()
+    plt.plot(x, Chi)
+    plt.grid('on'); plt.ylabel('Chi')
+    """
+    # Analytical values
+    E_ = -np.sinh(8)*8 / (3 + np.cosh(8))
+    #Cv_ = T**(-2) * (64*np.cosh(8)*(3 + np.cosh(8)) - 8*np.sinh(8)*8*np.sinh(8)) / (3 + np.cosh(8))**2
+    Cv_ = 64/(T*T) * (np.cosh(8)*(3 + np.cosh(8)) - (np.sinh(8)**2))/(3 + np.cosh(8))**2
+    M2_ = (8*np.exp(8) + 8)/(3 + np.cosh(8))
+    absM_ = (2*np.exp(8) + 4)/(3 + np.cosh(8))
+    chi_ = M2_/T
+
+    #print E_, absM_, M2_, Cv_, chi_
 
 plt.show()

@@ -18,10 +18,11 @@ void init_params(mat S, double &E, double &M)
   }
 }
 
-void write_params(vec A, vec B)
+void write_arrays(vec A, vec B, float T)
 {
+  string temp = to_string(T);
   ofstream myfile;
-  myfile.open ("ising_data.txt");
+  myfile.open ("ising_arrays_" + temp + ".txt");
   //cout << A << endl;
   for (int i=0; i < A.n_elem; i++)
   {
@@ -31,19 +32,39 @@ void write_params(vec A, vec B)
   return;
 }
 
-void rand_spins(mat &S)
+void write_means(double E, double absM, double M2, double C_V, double chi, float T)
 {
-  // Generate L*L matrix with spins -1 or 1
-  srand (time(NULL));
-  int n = S.n_elem;
-  for (int i=0; i < n; i++)
+  string temp = to_string(T);
+  ofstream myfile;
+  myfile.open ("ising_means_" + temp + ".txt");
+  //cout << A << endl;
+  myfile << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+  myfile.close();
+  return;
+}
+
+// Generate L*L matrix with spins -1 or 1
+mat init_spins(int L, mt19937_64 &gen, int rand_state)
+{
+  mat S(L,L);
+  if (rand_state == 1)
   {
-    S(i) = rand() % 2;  // returns 0 or 1, corresponding to spin -1 and 1
-    if (S(i) == 0)
+    uniform_int_distribution<int> RNGspin(0, 1);
+    int n = L*L;
+    for (int i=0; i < n; i++)
     {
-      S(i) = -1;
+      S(i) = RNGspin(gen);  // returns 0 or 1, corresponding to spin -1 and 1
+      if (S(i) == 0)
+      {
+        S(i) = -1;
+      }
     }
   }
+  else
+  {
+    S.fill(1);
+  }
+return S;
 }
 
 void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, mt19937_64 &gen)
@@ -66,7 +87,7 @@ void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<d
         counter += 1;
         S(x, y)  *= -1;           // flip spin
         energy  += dE;
-        magmom  += S(x, y);
+        magmom  += 2*S(x, y);     // difference in mag. after flip
       }
     }
   }

@@ -9,6 +9,7 @@
 #include <random>
 #include <map>
 #include "mpi.h"
+#include <string>
 
 using namespace arma;
 using namespace std;
@@ -17,9 +18,11 @@ int PBC(int index, int max, int add);
 
 void init_params(mat S, double &E, double &M);
 
-void write_params(vec A, vec B);
+mat init_spins(int L, mt19937_64 &gen, int rand_state);
 
-void rand_spins(mat &S);
+void write_arrays(vec A, vec B, float T);
+
+void write_means(double E, double absM, double M2, double C_V, double chi, float T);
 
 map<double, double> transitions(double T);
 
