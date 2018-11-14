@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
   int counter;
 
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
-  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
+  vec Energy2 = zeros(numMC);
   vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
   vec absMagmom = zeros(numMC);
   vec Cv = zeros(numMC);
@@ -33,9 +33,7 @@ int main(int argc, char* argv[])
   uniform_int_distribution<int> RNGpos(0, L-1);
 
   // ------ Set up initial spins and initial energy, magnetization ------
-  mat S = init_spins(L, gen, rand_state);
-  init_params(S, energy, magmom);   // initial energy, magnetic momentum
-  Energy(0) = energy; Magmom(0) = magmom;
+
 
   // Initialize parallellization
   int numprocs, my_rank;
@@ -55,7 +53,10 @@ int main(int argc, char* argv[])
   {
     mc_end = numMC;
   }
-
+  double *Energy = new double[numMC];
+  mat S = init_spins(L, gen, rand_state);
+  init_params(S, energy, magmom);   // initial energy, magnetic momentum
+  Energy[0] = energy; Magmom(0) = magmom;
   // Broadcast variables to allow for parallellization
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -65,24 +66,20 @@ int main(int argc, char* argv[])
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final; T+=temp_step)
   {
+    cout << my_rank << endl;
     time_start = MPI_Wtime();
-    cout << T << endl;
     map<double, double> w = transitions(T);     // create dictionary
+
     for (int k = mc_start; k < mc_end; k++)
     {
-
       MC_cycle(S, L, counter, energy, magmom, w, gen);
 
-      Energy(k) = energy;
+      Energy[k] = energy;
     //  Energy2(k) = energy*energy;
       Magmom(k) = magmom;
     //  Magmom2(k) = magmom*magmom;
     //  Cv(k) = (Energy2(k) - Energy(k)*Energy(k))/(T*T*n);
     //  Chi(k) = (Magmom2(k) - Magmom(k)*Magmom(k))/(T*n);
-
-    //  myfile << energy << ' ' << magmom << ' ' << Cv(k) << ' ' << Chi(k) << endl;
-
-    //  MPI_Reduce(&Energy[k], &total_energy[k], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
       ValueSums(0) += energy; ValueSums(1) += energy*energy;
       ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
@@ -99,6 +96,39 @@ int main(int argc, char* argv[])
     total_time = time_end - time_start;
     cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
 
+    if (my_rank != 0)
+    {
+      MPI_Send(Energy, numMC, MPI_DOUBLE, 0, 50, MPI_COMM_WORLD);
+    }
+
+    if (my_rank == 0)
+    {
+      double *energies = new double[numMC];
+      string temp = to_string(T);
+      MPI_Status status;
+      ofstream myfile;
+      myfile.open ("ising_arrays_" + temp + ".txt", ios_base::app);
+
+      for (int i=0; i < numMC; i++)
+      {
+          myfile << energies[i] << ' ' << Magmom(i) << endl;
+      }
+
+      for (int rank=1; rank < numprocs; rank++)
+      {
+        MPI_Recv(energies, numMC, MPI_DOUBLE, rank, 50, MPI_COMM_WORLD, &status);
+
+        for (int i=0; i < numMC; i++)
+        {
+          myfile << energies[i] << ' ' << Magmom(i) << endl;
+        }
+
+        //write_arrays(energies, Magmom, numMC, T);
+      }
+      myfile.close();
+
+    }
+
     // Compute expectation values from master node, write values
     if (my_rank == 0)
     {
@@ -114,8 +144,8 @@ int main(int argc, char* argv[])
       cout << "Results:" << endl;
       cout << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
 
-      write_arrays(Energy, Magmom, T);
       write_means(E, absM, M2, C_V, chi, T);
+
     }
   }
 

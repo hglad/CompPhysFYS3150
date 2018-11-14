@@ -11,11 +11,13 @@ for file in files:
 
 # Sort temperatures because the 'files' list is not sorted correctly
 temps = np.sort(temps)
-
+temps = [1.0]
 for T in temps:
     file = ('ising_arrays_%s00000.txt' % str(T))
     E, M = np.loadtxt(file, usecols=(0,1), unpack=True, dtype='float')
+
     numMC = len(E)
+    x = np.linspace(0, len(E)-1, numMC)    # array for MC-cycles
     #E = np.loadtxt("ising_data.txt")
     #print E
     E2 = np.dot(E,E)
@@ -29,7 +31,6 @@ for T in temps:
         E.append(float(cols[0]))
         M.append(float(cols[1]))
     """
-    x = np.linspace(0, len(E)-1, numMC)    # array for MC-cycles
 
     plt.figure()
     plt.title('T = %1.2f [kT/J]' % T)

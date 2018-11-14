@@ -18,15 +18,15 @@ void init_params(mat S, double &E, double &M)
   }
 }
 
-void write_arrays(vec A, vec B, float T)
+void write_arrays(double *A, vec B, int numMC, float T)
 {
   string temp = to_string(T);
   ofstream myfile;
   myfile.open ("ising_arrays_" + temp + ".txt");
   //cout << A << endl;
-  for (int i=0; i < A.n_elem; i++)
+  for (int i=0; i < numMC; i++)
   {
-    myfile << A(i) << ' ' << B(i) << endl;
+    myfile << A[i] << ' ' << B(i) << endl;
   }
   myfile.close();
   return;

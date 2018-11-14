@@ -20,7 +20,7 @@ void init_params(mat S, double &E, double &M);
 
 mat init_spins(int L, mt19937_64 &gen, int rand_state);
 
-void write_arrays(vec A, vec B, float T);
+void write_arrays(double *A, vec B, int numMC, float T);
 
 void write_means(double E, double absM, double M2, double C_V, double chi, float T);
 
