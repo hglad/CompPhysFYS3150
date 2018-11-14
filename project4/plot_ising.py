@@ -11,7 +11,7 @@ for file in files:
 
 # Sort temperatures because the 'files' list is not sorted correctly
 temps = np.sort(temps)
-temps = [1.0]
+temps = [2.0]
 for T in temps:
     file = ('ising_arrays_%s00000.txt' % str(T))
     E, M = np.loadtxt(file, usecols=(0,1), unpack=True, dtype='float')

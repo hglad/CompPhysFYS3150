@@ -17,12 +17,14 @@ int main(int argc, char* argv[])
   double E, E2, M, M2, absM, C_V, chi;
   int counter;
 
+  //cout << vec_len <<endl;
+
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
-  vec Energy = zeros(numMC); vec Energy2 = zeros(numMC);
-  vec Magmom = zeros(numMC); vec Magmom2 = zeros(numMC);
-  vec absMagmom = zeros(numMC);
-  vec Cv = zeros(numMC);
-  vec Chi = zeros(numMC);
+  //vec Energy2 = zeros(numMC);
+  //vec Magmom2 = zeros(numMC);
+  //vec absMagmom = zeros(numMC);
+  //vec Cv = zeros(numMC);
+  //vec Chi = zeros(numMC);
 
   // ------ Initialize random number generator ------
   random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -30,11 +32,6 @@ int main(int argc, char* argv[])
   mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
-
-  // ------ Set up initial spins and initial energy, magnetization ------
-  mat S = init_spins(L, gen, rand_state);
-  init_params(S, energy, magmom);   // initial energy, magnetic momentum
-  Energy(0) = energy; Magmom(0) = magmom;
 
   // Initialize parallellization
   int numprocs, my_rank;
@@ -48,12 +45,19 @@ int main(int argc, char* argv[])
 
   // Find proper intervals based on number of processes used
   int no_intervals = numMC/numprocs;
+  vec Energy = zeros(no_intervals);
+  vec Magmom = zeros(no_intervals);
   int mc_start = my_rank*no_intervals + 1;
   int mc_end = (my_rank + 1)*no_intervals;
   if ( (my_rank == numprocs-1) &&( mc_end < numMC) )
   {
     mc_end = numMC;
   }
+
+  // ------ Set up initial spins and initial energy, magnetization ------
+  mat S = init_spins(L, gen, rand_state);
+  init_params(S, energy, magmom);   // initial energy, magnetic momentum
+  Energy(0) = energy; Magmom(0) = magmom;
 
   // Broadcast variables
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -71,9 +75,14 @@ int main(int argc, char* argv[])
     {
       MC_cycle(S, L, counter, energy, magmom, w, gen);
 
-      Energy(k) = energy;
+      if (my_rank == 0)
+      {
+        Energy(k) = energy;
+        Magmom(k) = magmom;
+      }
+
     //  Energy2(k) = energy*energy;
-      Magmom(k) = magmom;
+
     //  Magmom2(k) = magmom*magmom;
     //  Cv(k) = (Energy2(k) - Energy(k)*Energy(k))/(T*T*n);
     //  Chi(k) = (Magmom2(k) - Magmom(k)*Magmom(k))/(T*n);
@@ -92,6 +101,10 @@ int main(int argc, char* argv[])
     // Compute expectation values from master node, write values
     if (my_rank == 0)
     {
+      time_end = MPI_Wtime();
+      total_time = time_end - time_start;
+      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
+
       //cout << Energy << endl;
       E    = total[0]/numMC;
       E2   = total[1]/numMC;
@@ -103,10 +116,6 @@ int main(int argc, char* argv[])
 
       cout << "Results:" << endl;
       cout << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
-
-      time_end = MPI_Wtime();
-      total_time = time_end - time_start;
-      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
 
       write_means(E, absM, M2, C_V, chi, T);
       write_arrays(Energy, Magmom, numMC/numprocs, T);
