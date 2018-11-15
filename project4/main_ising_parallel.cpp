@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
   // ------ Initialize random number generator ------
   random_device rd;  //Will be used to obtain a seed for the random number engine
-  //mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
+//  mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
   mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
       if (my_rank == 0)
       {
         Energy(k) = energy;
-        Magmom(k) = fabs(magmom);
+        Magmom(k) = magmom;
 
       }
     //  if (k > mc_start+3000)      // do not use first 3000 cycles
