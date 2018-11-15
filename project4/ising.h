@@ -20,9 +20,9 @@ void init_params(mat S, double &E, double &M);
 
 mat init_spins(int L, mt19937_64 &gen, int rand_state);
 
-void write_arrays(vec A, vec B, int numMC, float T);
+void write_arrays(vec A, vec B, int numMC, int L, float T);
 
-void write_means(double E, double absM, double M2, double C_V, double chi, float T);
+void write_means(double E, double absM, double M2, double C_V, double chi, int counter, int numMC, int L, float T);
 
 map<double, double> transitions(double T);
 

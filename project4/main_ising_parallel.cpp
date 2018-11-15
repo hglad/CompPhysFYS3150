@@ -1,7 +1,7 @@
 #include "ising.h"
 //compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
 //run:     mpirun -n 1 ./main.x 20000 2 1 2.4 1
-// arguments: numMC, L, T_start, T_end, random_init=1 or 0
+//arguments: numMC, L, T_start, T_end, random_init=1 or 0
 
 int main(int argc, char* argv[])
 {
@@ -15,7 +15,8 @@ int main(int argc, char* argv[])
 
   double energy, magmom;
   double E, E2, M, M2, absM, C_V, chi;
-  int counter;
+
+  bool save = true;
 
   //cout << vec_len <<endl;
 
@@ -45,6 +46,7 @@ int main(int argc, char* argv[])
 
   // Find proper intervals based on number of processes used
   int no_intervals = numMC/numprocs;
+
   vec Energy = zeros(no_intervals);
   vec Magmom = zeros(no_intervals);
   int mc_start = my_rank*no_intervals + 1;
@@ -57,20 +59,21 @@ int main(int argc, char* argv[])
   // ------ Set up initial spins and initial energy, magnetization ------
   mat S = init_spins(L, gen, rand_state);
   init_params(S, energy, magmom);   // initial energy, magnetic momentum
-  Energy(0) = energy; Magmom(0) = magmom;
+  Energy(0) = energy; Magmom(0) = fabs(magmom);
 
   // Broadcast variables
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_final, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  temp_step = 0.2;
+  temp_step = 0.01;
+  int counter;
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
-  for (double T = T_start; T <= T_final; T+=temp_step)
+  for (double T = T_start; T <= T_final*1.0001; T+=temp_step)
   {
     time_start = MPI_Wtime();
     map<double, double> w = transitions(T);     // create dictionary
-
+    counter = 0;
     for (int k = mc_start; k < mc_end; k++)
     {
       MC_cycle(S, L, counter, energy, magmom, w, gen);
@@ -78,18 +81,15 @@ int main(int argc, char* argv[])
       if (my_rank == 0)
       {
         Energy(k) = energy;
-        Magmom(k) = magmom;
+        Magmom(k) = fabs(magmom);
+
       }
-
-    //  Energy2(k) = energy*energy;
-
-    //  Magmom2(k) = magmom*magmom;
-    //  Cv(k) = (Energy2(k) - Energy(k)*Energy(k))/(T*T*n);
-    //  Chi(k) = (Magmom2(k) - Magmom(k)*Magmom(k))/(T*n);
+    //  if (k > mc_start+3000)      // do not use first 3000 cycles
 
       ValueSums(0) += energy; ValueSums(1) += energy*energy;
       ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
       ValueSums(4) += fabs(magmom);
+
     }
 
     // Add all contributions to master node (rank 0)
@@ -103,23 +103,26 @@ int main(int argc, char* argv[])
     {
       time_end = MPI_Wtime();
       total_time = time_end - time_start;
-      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs  << endl;
+      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs << endl;
 
       //cout << Energy << endl;
-      E    = total[0]/numMC;
-      E2   = total[1]/numMC;
-      M    = total[2]/numMC;
-      M2   = total[3]/numMC;
-      absM = total[4]/numMC;
+      E    = total[0]/(numMC*n);
+      E2   = total[1]/(numMC*n);
+      M    = total[2]/(numMC*n);
+      M2   = total[3]/(numMC*n);
+      absM = total[4]/(numMC*n);
       C_V = (E2 - E*E)/(T*T);
       chi = (M2 - M*M)/(T);
 
-      cout << "Results:" << endl;
+      cout << "Results: T = " << T << endl;
       cout << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+      if (save == true)
+      {
+        write_means(E, absM, M2, C_V, chi, counter, numMC, L, T);
+        write_arrays(Energy, Magmom, no_intervals, L, T);
+      }
 
-      write_means(E, absM, M2, C_V, chi, T);
-      write_arrays(Energy, Magmom, numMC/numprocs, T);
-      // only plot values from one process
+      // only write arrays from one process
     }
   }
   MPI_Finalize();

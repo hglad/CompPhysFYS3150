@@ -18,27 +18,37 @@ void init_params(mat S, double &E, double &M)
   }
 }
 
-void write_arrays(vec A, vec B, int numMC, float T)
+void write_arrays(vec A, vec B, int numMC, int L, float T)
 {
   string temp = to_string(T);
+  temp = temp.substr(0,4);
+  string dim = to_string(L);
+  string MC = to_string(numMC);
   ofstream myfile;
-  myfile.open ("ising_arrays_" + temp + ".txt");
+//  myfile.open ("results/ising_arrays_L=" + dim + "T=" + temp + ".txt");
+  myfile.open ("results/arrays_L=" + dim + "T=" + temp + "MC=" + MC + ".txt");
+//  myfile.open ("/results/ising_arrays_L=" + dim + "T=" + temp + ".txt");
   //cout << A << endl;
   for (int i=0; i < numMC; i++)
   {
     myfile << A(i) << ' ' << B(i) << endl;
   }
-  myfile.close();
+
   return;
 }
 
-void write_means(double E, double absM, double M2, double C_V, double chi, float T)
+void write_means(double E, double absM, double M2, double C_V, double chi, int counter, int numMC, int L, float T)
 {
   string temp = to_string(T);
+  temp = temp.substr(0,4);
+  cout << temp << endl;
+  string dim = to_string(L);
+  string MC = to_string(numMC);
   ofstream myfile;
-  myfile.open ("ising_means_" + temp + ".txt");
-  //cout << A << endl;
-  myfile << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+//  myfile.open ("results/ising_means_L=" + dim + "T=" + temp + ".txt");
+  myfile.open ("results/means_L=" + dim + "T=" + temp + "MC=" + MC + ".txt");
+
+  myfile << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << ' ' << counter << ' ' << numMC << endl;
   myfile.close();
   return;
 }
