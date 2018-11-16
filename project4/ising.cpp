@@ -37,18 +37,33 @@ void write_arrays(vec A, vec B, int numMC, int L, float T)
   return;
 }
 
-void write_means(double E, double absM, double M2, double C_V, double chi, int counter, int numMC, int L, float T)
+void write_means(vec E, vec absM, vec M2, vec C_V, vec chi, int *counter, int numMC, int L, vec T_vec)
 {
-  string temp = to_string(T);
-  temp = temp.substr(0,4);
-  cout << temp << endl;
   string dim = to_string(L);
   string MC = to_string(numMC);
-  ofstream myfile;
-//  myfile.open ("results/ising_means_L=" + dim + "T=" + temp + ".txt");
-  myfile.open ("results/means_L=" + dim + "T=" + temp + "MC=" + MC + ".txt");
+  //double T_step = T_vec(1) - T_vec(0);
+  int n_temps = T_vec.n_elem;
+  double T_start = T_vec(0);
+  double T_final = T_vec(n_temps-1);
 
-  myfile << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << ' ' << counter << ' ' << numMC << endl;
+  ofstream myfile;
+  string temp_start = to_string(T_start);
+  temp_start = temp_start.substr(0,4);
+
+  string temp_final = to_string(T_final);
+  temp_final = temp_final.substr(0,4);
+  myfile.open ("results/means_L=" + dim + "T=" + temp_start + "-" + temp_final + "MC=" + MC + ".txt");
+
+  //for (double T = T_vec(0); T <= T_final*1.0001; T+=T_step)
+  for (int i=0; i < n_temps; i++)
+  {
+    //string temp = to_string(T_vec(i));
+    //temp = temp.substr(0,4);
+    //cout << temp << endl;
+
+  //  myfile.open ("results/ising_means_L=" + dim + "T=" + temp + ".txt");
+    myfile << E(i) << ' ' << absM(i) << ' ' << M2(i) << ' ' << C_V(i) << ' ' << chi(i) << ' ' << counter[i] << ' ' << T_vec(i) << ' ' << MC << endl;
+  }
   myfile.close();
   return;
 }

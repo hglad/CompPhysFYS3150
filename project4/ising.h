@@ -22,7 +22,7 @@ mat init_spins(int L, mt19937_64 &gen, int rand_state);
 
 void write_arrays(vec A, vec B, int numMC, int L, float T);
 
-void write_means(double E, double absM, double M2, double C_V, double chi, int counter, int numMC, int L, float T);
+void write_means(vec E, vec absM, vec M2, vec C_V, vec chi, int *counter, int numMC, int L, vec T_vec);
 
 map<double, double> transitions(double T);
 

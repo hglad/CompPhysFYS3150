@@ -14,9 +14,9 @@ int main(int argc, char* argv[])
   int n = L*L;
 
   double energy, magmom;
-  double E, E2, M, M2, absM, C_V, chi;
 
-  bool save = true;
+  bool save_arrays = false;
+  bool save_means = true;
 
   //cout << vec_len <<endl;
 
@@ -36,7 +36,6 @@ int main(int argc, char* argv[])
 
   // Initialize parallellization
   int numprocs, my_rank;
-  double temp_step;
   double time_start, time_end, total_time;
   vec total = zeros<vec>(5);
 
@@ -62,39 +61,37 @@ int main(int argc, char* argv[])
   Energy(0) = energy; Magmom(0) = fabs(magmom);
 
   // Broadcast variables
+  double T_step = 0.01;
   MPI_Bcast (&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_start, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   MPI_Bcast (&T_final, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  temp_step = 0.01;
-  int counter;
-  int cut_off_val;
-  /*
-  if (numMC <= 10000)
-  {
-    cut_off_val = 0.2*numMC;
-  }
-  if (numMC > 10000 && numMC <= 20000)
-  {
-    cut_off_val = 0.1*numMC;
-  }
-  if (numMC > 20000)
-  {
-    cut_off_val = 3000;
-  }
-  */
-  cut_off_val = 3000;
+  MPI_Bcast (&T_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  // Create vectors to hold expectation values for different temperatures
+  int n_temps = ceil((T_final - T_start)/T_step) + 1;
+
+  vec E = zeros(n_temps); vec E2 = zeros(n_temps);
+  vec M = zeros(n_temps); vec M2 = zeros(n_temps);
+  vec absM = zeros(n_temps); vec C_V = zeros(n_temps);
+  vec chi = zeros(n_temps);
+//  ivec counter = zeros<ivec>(n_temps);
+  int *counter = new int[n_temps];
+
+  int i = 0;    // counter for number of temperatures computed
+  int cut_off_val = 3000;
   int start_sum = mc_start + cut_off_val;
+//  int counter__;
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
-  for (double T = T_start; T <= T_final*1.0001; T+=temp_step)
+  for (double T = T_start; T <= T_final*1.0001; T+=T_step)
   {
+    counter[i] = 0;
     time_start = MPI_Wtime();
     map<double, double> w = transitions(T);     // create dictionary
-    counter = 0;
+    //counter = 0;              // accepted states
     reset_sums(ValueSums, total);   // reset sums for expectation values
     for (int k = mc_start; k < mc_end; k++)
     {
-      MC_cycle(S, L, counter, energy, magmom, w, gen);
+      MC_cycle(S, L, counter[i], energy, magmom, w, gen);
 
       if (my_rank == 0)
       {
@@ -111,9 +108,9 @@ int main(int argc, char* argv[])
     }
 
     // Add all contributions to master node (rank 0)
-    for (int i = 0; i < 5; i++)
+    for (int j = 0; j < 5; j++)
     {
-      MPI_Reduce(&ValueSums(i), &total(i), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&ValueSums(j), &total(j), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
     // Compute expectation values from master node, write values
@@ -127,27 +124,33 @@ int main(int argc, char* argv[])
       // multiply cut off with number of processors since every process cuts off
       // the same amount of cycles
 
-      //cout << total << endl;
-      E    = total(0);
-      E2   = total(1);
-      M    = total(2);
-      M2   = total(3);
-      absM = total(4);
-
-      C_V = (E2 - E*E)/(T*T);
-      chi = (M2 - absM*absM)/(T);
+      E(i)    = total(0);
+      E2(i)   = total(1);
+      M(i)    = total(2);
+      M2(i)   = total(3);
+      absM(i) = total(4);
+      cout << E(i) << ' ' << i << endl;
+      C_V(i) = (E2(i) - E(i)*E(i))/(T*T);
+      chi(i) = (M2(i) - absM(i)*absM(i))/(T);
 
       cout << "Results: T = " << T << endl;
-      cout << E/n << ' ' << absM/n << ' ' << M2/n << ' ' << C_V/n << ' ' << chi/n << endl;
-      if (save == true)
+    //  cout << E(i)/n << ' ' << absM(i)/n << ' ' << M2(i)/n << ' ' << C_V(i)/n << ' ' << chi(i)/n << endl;
+      if (save_arrays == true)
       {
-        write_means(E/n, absM/n, M2/n, C_V/n, chi/n, counter, numMC, L, T);
         write_arrays(Energy, Magmom, no_intervals, L, T);
       }
-
+      i += 1;
       // only write arrays from one process
     }
+
   }
+  // save expectation values from all different temperatures
+  if ((save_means == true) && (my_rank == 0))
+  {
+    vec T_vec = linspace(T_start, T_final, n_temps);
+    write_means(E/n, absM/n, M2/n, C_V/n, chi/n, counter, numMC, L, T_vec);
+  }
+
   MPI_Finalize();
 
   //Energy.save("ising_data.txt", arma_ascii);
