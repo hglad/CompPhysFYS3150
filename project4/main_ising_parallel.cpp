@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
   temp_step = 0.01;
   int counter;
   int cut_off_val;
-
+  /*
   if (numMC <= 10000)
   {
     cut_off_val = 0.2*numMC;
@@ -82,7 +82,9 @@ int main(int argc, char* argv[])
   {
     cut_off_val = 3000;
   }
-
+  */
+  cut_off_val = 3000;
+  int start_sum = mc_start + cut_off_val;
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final*1.0001; T+=temp_step)
   {
@@ -99,7 +101,8 @@ int main(int argc, char* argv[])
         Energy(k) = energy;
         Magmom(k) = fabs(magmom);
       }
-      if (k > cut_off_val)      // do not use first 3000 cycles
+
+      if (k > start_sum)     // do not use first 3000 cycles for every process
       {
         ValueSums(0) += energy; ValueSums(1) += energy*energy;
         ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
@@ -118,10 +121,13 @@ int main(int argc, char* argv[])
     {
       time_end = MPI_Wtime();
       total_time = time_end - time_start;
-      cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs << endl;
+      cout << "Time = " <<  total_time << " on number of processors: " << numprocs << endl;
       //cut_off_mc = numMC - 3000;
-      total /= (numMC - cut_off_val);
-      //cout << Energy << endl;
+      total /= (numMC - cut_off_val*numprocs);
+      // multiply cut off with number of processors since every process cuts off
+      // the same amount of cycles
+
+      //cout << total << endl;
       E    = total(0);
       E2   = total(1);
       M    = total(2);
