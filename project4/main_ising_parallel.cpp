@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
   double T_start = atof(argv[3]);
   double T_final = atof(argv[4]);
   int rand_state = atoi(argv[5]); // rand_state=1 gives a random initial configuration
+  int cut_off_num = atoi(argv[6]); // number of initial MC-cycles to cut off
   int n = L*L;
 
   double energy, magmom;
@@ -78,8 +79,7 @@ int main(int argc, char* argv[])
   int *counter = new int[n_temps];
 
   int i = 0;    // counter for number of temperatures computed
-  int cut_off_val = 3000;
-  int start_sum = mc_start + cut_off_val;
+  int start_sum = mc_start + cut_off_num;
 //  int counter__;
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final*1.0001; T+=T_step)
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
       total_time = time_end - time_start;
       cout << "Time = " <<  total_time << " on number of processors: " << numprocs << endl;
       //cut_off_mc = numMC - 3000;
-      total /= (numMC - cut_off_val*numprocs);
+      total /= (numMC - cut_off_num*numprocs);
       // multiply cut off with number of processors since every process cuts off
       // the same amount of cycles
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
       M(i)    = total(2);
       M2(i)   = total(3);
       absM(i) = total(4);
-      cout << E(i) << ' ' << i << endl;
+
       C_V(i) = (E2(i) - E(i)*E(i))/(T*T);
       chi(i) = (M2(i) - absM(i)*absM(i))/(T);
 
