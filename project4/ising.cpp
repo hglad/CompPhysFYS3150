@@ -117,3 +117,15 @@ map<double, double> transitions(double T)
 
   return possible_E;
 }
+
+void reset_sums(vec &ValueSums, vec &total)
+{
+  ValueSums(0) = 0; ValueSums(1) = 0;
+  ValueSums(2) = 0; ValueSums(3) = 0;
+  ValueSums(4) = 0;
+
+  total(0) = 0; total(1) = 0;
+  total(2) = 0; total(3) = 0;
+  total(4) = 0;
+  return;
+}

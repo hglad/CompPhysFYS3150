@@ -28,5 +28,6 @@ map<double, double> transitions(double T);
 
 void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, mt19937_64 &gen);
 
+void reset_sums(vec &ValueSums, vec &total);
 
 #endif /* ISING_H */

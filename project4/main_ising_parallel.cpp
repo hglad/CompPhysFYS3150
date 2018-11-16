@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
   // ------ Initialize random number generator ------
   random_device rd;  //Will be used to obtain a seed for the random number engine
-//  mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
+  //mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
   mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   int numprocs, my_rank;
   double temp_step;
   double time_start, time_end, total_time;
-  double total[5];
+  vec total = zeros<vec>(5);
 
   MPI_Init (&argc, &argv);
   MPI_Comm_size (MPI_COMM_WORLD, &numprocs);
@@ -68,12 +68,28 @@ int main(int argc, char* argv[])
   MPI_Bcast (&temp_step, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   temp_step = 0.01;
   int counter;
+  int cut_off_val;
+
+  if (numMC <= 10000)
+  {
+    cut_off_val = 0.2*numMC;
+  }
+  if (numMC > 10000 && numMC <= 20000)
+  {
+    cut_off_val = 0.1*numMC;
+  }
+  if (numMC > 20000)
+  {
+    cut_off_val = 3000;
+  }
+
   //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final*1.0001; T+=temp_step)
   {
     time_start = MPI_Wtime();
     map<double, double> w = transitions(T);     // create dictionary
     counter = 0;
+    reset_sums(ValueSums, total);   // reset sums for expectation values
     for (int k = mc_start; k < mc_end; k++)
     {
       MC_cycle(S, L, counter, energy, magmom, w, gen);
@@ -81,21 +97,20 @@ int main(int argc, char* argv[])
       if (my_rank == 0)
       {
         Energy(k) = energy;
-        Magmom(k) = magmom;
-
+        Magmom(k) = fabs(magmom);
       }
-    //  if (k > mc_start+3000)      // do not use first 3000 cycles
-
-      ValueSums(0) += energy; ValueSums(1) += energy*energy;
-      ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
-      ValueSums(4) += fabs(magmom);
-
+      if (k > cut_off_val)      // do not use first 3000 cycles
+      {
+        ValueSums(0) += energy; ValueSums(1) += energy*energy;
+        ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
+        ValueSums(4) += fabs(magmom);
+      }
     }
 
     // Add all contributions to master node (rank 0)
     for (int i = 0; i < 5; i++)
     {
-      MPI_Reduce(&ValueSums(i), &total[i], 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&ValueSums(i), &total(i), 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
     // Compute expectation values from master node, write values
@@ -104,21 +119,23 @@ int main(int argc, char* argv[])
       time_end = MPI_Wtime();
       total_time = time_end - time_start;
       cout << "Time = " <<  total_time  << " on number of processors: "  << numprocs << endl;
-
+      //cut_off_mc = numMC - 3000;
+      total /= (numMC - cut_off_val);
       //cout << Energy << endl;
-      E    = total[0]/(numMC*n);
-      E2   = total[1]/(numMC*n);
-      M    = total[2]/(numMC*n);
-      M2   = total[3]/(numMC*n);
-      absM = total[4]/(numMC*n);
+      E    = total(0);
+      E2   = total(1);
+      M    = total(2);
+      M2   = total(3);
+      absM = total(4);
+
       C_V = (E2 - E*E)/(T*T);
-      chi = (M2 - M*M)/(T);
+      chi = (M2 - absM*absM)/(T);
 
       cout << "Results: T = " << T << endl;
-      cout << E << ' ' << absM << ' ' << M2 << ' ' << C_V << ' ' << chi << endl;
+      cout << E/n << ' ' << absM/n << ' ' << M2/n << ' ' << C_V/n << ' ' << chi/n << endl;
       if (save == true)
       {
-        write_means(E, absM, M2, C_V, chi, counter, numMC, L, T);
+        write_means(E/n, absM/n, M2/n, C_V/n, chi/n, counter, numMC, L, T);
         write_arrays(Energy, Magmom, no_intervals, L, T);
       }
 
