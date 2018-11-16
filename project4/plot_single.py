@@ -93,7 +93,7 @@ def plot_temps_e():
 
     # n:    number of mean values per temperature
     # numL: number of different lattice dimensions
-    n = len(T_range); numL = 3
+    n = len(T_range); numL = 4
 
     E = np.zeros((n,numL)); absM = np.zeros((n,numL))
     M2 = np.zeros((n,numL)); C_V = np.zeros((n,numL))
@@ -111,7 +111,7 @@ def plot_temps_e():
         E[i,0], absM[i,0], M2[i,0], C_V[i,0], chi[i,0], counts[i,0], MC[i,0] = np.loadtxt(file1, usecols=(0,1,2,3,4,5,6), unpack=True)
         E[i,1], absM[i,1], M2[i,1], C_V[i,1], chi[i,1], counts[i,1], MC[i,1] = np.loadtxt(file2, usecols=(0,1,2,3,4,5,6), unpack=True)
         E[i,2], absM[i,2], M2[i,2], C_V[i,2], chi[i,2], counts[i,2], MC[i,2] = np.loadtxt(file3, usecols=(0,1,2,3,4,5,6), unpack=True)
-    #    E[i,3], absM[i,3], M2[i,3], C_V[i,3], chi[i,3], counts[i,3], MC[i,3] = np.loadtxt(file4, usecols=(0,1,2,3,4,5,6), unpack=True)
+        E[i,3], absM[i,3], M2[i,3], C_V[i,3], chi[i,3], counts[i,3], MC[i,3] = np.loadtxt(file4, usecols=(0,1,2,3,4,5,6), unpack=True)
     #    E[i,4], absM[i,4], M2[i,4], C_V[i,4], chi[i,4], counts[i,4], MC[i,4] = np.loadtxt(file5, usecols=(0,1,2,3,4,5,6), unpack=True)
 
     """
