@@ -81,7 +81,11 @@ def plot_temps_e():
 
     # numL: number of different lattice dimensions
     # numT:    number of mean values per temperature
-    L_strings = ['40', '60', '80']       # values of L to plot for
+    L_strings = ['40', '60', '80', '100']       # values of L to plot for
+    legends = []
+    for i in range(len(L_strings)):
+        legends.append('L = %s' % L_strings[i])
+
     MC_string = '1000000'
     numL = len(L_strings)
     numT = len(T_range)
@@ -97,28 +101,30 @@ def plot_temps_e():
         E[:,i], absM[:,i], M2[:,i], C_V[:,i], chi[:,i], counts[:,i], MC[:,i] = np.loadtxt(file, usecols=(0,1,2,3,4,5,6), unpack=True)
 #    T_L20 = np.arange(2.20, 2.40+0.01, 0.01)
 
-#    plt.title('$\\chi$, %1.0f x %1.0f lattice' % (L,L))
-    legends = ['L = 20', 'L = 40', 'L = 60', 'L = 80', 'L = 100']
     plt.figure()
     plt.plot(T_range, chi)
+    plt.title('Susceptibility for different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
     plt.xlabel('T [kT/J]'); plt.ylabel('$\\chi$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, C_V)
+    plt.title('Heat capacity for different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
     plt.xlabel('T [kT/J]'); plt.ylabel('$C_V$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, absM)
+    plt.title('Mean magnetisation for different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
     plt.xlabel('T [kT/J]'); plt.ylabel('$|M|$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, E)
+    plt.title('Mean energy for different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
     plt.xlabel('T [kT/J]'); plt.ylabel('$E$')
     plt.grid('on')
