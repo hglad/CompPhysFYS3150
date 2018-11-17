@@ -42,12 +42,12 @@ def plot_expectation_c(files_T1, files_T2, L):
     E = np.zeros((n,2)); absM = np.zeros((n,2))
     M2 = np.zeros((n,2)); C_V = np.zeros((n,2))
     chi = np.zeros((n,2)); counts = np.zeros((n,2))
-    MC = np.zeros((n,2))
+    MC = np.zeros((n,2)); T = np.zeros((n,2))
     #plot_array(filename)
     i = 0
     for file1, file2 in zip(files_T1, files_T2):
-        E[i,0], absM[i,0], M2[i,0], C_V[i,0], chi[i,0], counts[i,0], MC[i,0] = np.loadtxt(file1, usecols=(0,1,2,3,4,5,6), unpack=True)
-        E[i,1], absM[i,1], M2[i,1], C_V[i,1], chi[i,1], counts[i,1], MC[i,1] = np.loadtxt(file2, usecols=(0,1,2,3,4,5,6), unpack=True)
+        E[i,0], absM[i,0], M2[i,0], C_V[i,0], chi[i,0], counts[i,0], T[i,0], MC[i,0] = np.loadtxt(file1, usecols=(0,1,2,3,4,5,6,7), unpack=True)
+        E[i,1], absM[i,1], M2[i,1], C_V[i,1], chi[i,1], counts[i,1], T[i,0], MC[i,1] = np.loadtxt(file2, usecols=(0,1,2,3,4,5,6,7), unpack=True)
         i += 1
 
     plt.title('Number of accepted states, %1.0f x %1.0f lattice' % (L,L))
@@ -81,7 +81,8 @@ def plot_temps_e():
 
     # numL: number of different lattice dimensions
     # numT:    number of mean values per temperature
-    L_strings = ['20', '40', '60', '80']       # values of L to plot for
+    L_strings = ['40', '60', '80']       # values of L to plot for
+    MC_string = '1000000'
     numL = len(L_strings)
     numT = len(T_range)
 
@@ -92,7 +93,7 @@ def plot_temps_e():
 
     T_start = '2.20'; T_final = '2.40'
     for i in range(len(L_strings)):
-        file = ('results/means_L=%sT=%s-%sMC=100000.txt' % (L_strings[i], T_start, T_final) )
+        file = ('results/means_L=%sT=%s-%sMC=%s.txt' % (L_strings[i], T_start, T_final, MC_string) )
         E[:,i], absM[:,i], M2[:,i], C_V[:,i], chi[:,i], counts[:,i], MC[:,i] = np.loadtxt(file, usecols=(0,1,2,3,4,5,6), unpack=True)
 #    T_L20 = np.arange(2.20, 2.40+0.01, 0.01)
 
@@ -132,7 +133,7 @@ means_T1 = []
 arrays_T1 = []
 for MC in T1:
     means_T1.append('results/means_L=20T=1.00-1.00MC=%s.txt' % MC)
-    arrays_T1.append('results/arrays_L=20T=1.00-100MC=%s.txt' % MC)
+    arrays_T1.append('results/arrays_L=20T=1.00MC=%s.txt' % MC)
 
 # files with different MC-cycles with T = 2.4
 T2 = T1
@@ -141,7 +142,7 @@ arrays_T2 = []
 
 for MC in T2:
     means_T2.append('results/means_L=20T=2.40-2.40MC=%s.txt' % MC)
-    arrays_T2.append('results/arrays_L=20T=2.40-2.40MC=%s.txt' % MC)
+    arrays_T2.append('results/arrays_L=20T=2.40MC=%s.txt' % MC)
 
 #----------------------- e ----------------------       1 mill. cycles
 #T_L20 = ['2.20', '2.21', '2.22', '2.23', '2.24', '2.25', '2.26', '2.27', '2.28', '2.29', '2.30', '2.31', '2.32', '2.33', '2.34', '2.35', '2.36', '2.37', '2.38', '2.39', '2.40']

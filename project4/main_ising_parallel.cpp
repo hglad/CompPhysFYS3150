@@ -1,7 +1,7 @@
 #include "ising.h"
 //compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
 //run:     mpirun -n 1 ./main.x 20000 2 1 2.4 1
-//arguments: numMC, L, T_start, T_end, random_init=1 or 0
+//arguments: numMC L T_start T_end rand_state cut_off_num
 
 int main(int argc, char* argv[])
 {
