@@ -81,7 +81,7 @@ def plot_temps_e():
 
     # numL: number of different lattice dimensions
     # numT:    number of mean values per temperature
-    L_strings = ['40', '60', '80', '100']       # values of L to plot for
+    L_strings = ['40', '60', '80', '100', '120']       # values of L to plot for
     legends = []
     for i in range(len(L_strings)):
         legends.append('L = %s' % L_strings[i])
@@ -167,10 +167,10 @@ for i in range(len(T_L40)):
 for i in range(len(T_L20)):
     means_T_L20.append('results/means_L=20T=%sMC=100000.txt' % T_L20[i])
 """
-plot_expectation_c(means_T1, means_T2, L=20)
+#plot_expectation_c(means_T1, means_T2, L=20)
 #plot_arrays_c(arrays_T1, arrays_T2, L=20)
 
-#plot_temps_e()
+plot_temps_e()
 #
 
 #plot_single_arrays('results/arrays_L=20T=1.00MC=10000.txt')

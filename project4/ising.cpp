@@ -25,10 +25,8 @@ void write_arrays(vec A, vec B, int numMC, int L, float T)
   string dim = to_string(L);
   string MC = to_string(numMC);
   ofstream myfile;
-//  myfile.open ("results/ising_arrays_L=" + dim + "T=" + temp + ".txt");
   myfile.open ("results/arrays_L=" + dim + "T=" + temp + "MC=" + MC + ".txt");
-//  myfile.open ("/results/ising_arrays_L=" + dim + "T=" + temp + ".txt");
-  //cout << A << endl;
+
   for (int i=0; i < numMC; i++)
   {
     myfile << A(i) << ' ' << B(i) << endl;
@@ -54,14 +52,8 @@ void write_means(vec E, vec absM, vec M2, vec C_V, vec chi, int *counter, int nu
   temp_final = temp_final.substr(0,4);
   myfile.open ("results/means_L=" + dim + "T=" + temp_start + "-" + temp_final + "MC=" + MC + ".txt");
 
-  //for (double T = T_vec(0); T <= T_final*1.0001; T+=T_step)
   for (int i=0; i < n_temps; i++)
   {
-    //string temp = to_string(T_vec(i));
-    //temp = temp.substr(0,4);
-    //cout << temp << endl;
-
-  //  myfile.open ("results/ising_means_L=" + dim + "T=" + temp + ".txt");
     myfile << E(i) << ' ' << absM(i) << ' ' << M2(i) << ' ' << C_V(i) << ' ' << chi(i) << ' ' << counter[i] << ' ' << T_vec(i) << ' ' << MC << endl;
   }
   myfile.close();
@@ -94,9 +86,10 @@ return S;
 
 void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<double, double> w, mt19937_64 &gen)
 {     // a single MC cycle
+  int n = L*L;
   uniform_int_distribution<int> RNGpos(0, L-1);
   uniform_real_distribution<double> dist(0.0, 1.0);
-  for (int i = 0; i < L*L; i++)
+  for (int i = 0; i < n; i++)
   {
       int x = RNGpos(gen);
       int y = RNGpos(gen);

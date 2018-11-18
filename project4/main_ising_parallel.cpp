@@ -1,17 +1,28 @@
-#include "ising.h"
-//compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
-//run:     mpirun -n 1 ./main.x 20000 2 1 2.4 1
-//arguments: numMC L T_start T_end rand_state cut_off_num
+/* -------- Documentation --------
+compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
 
+command line arguments in order:
+numMC - total number of Monte Carlo cycles to perform (independent of processors)
+L - size of lattice dimensions
+T_start - first temperature to calculate expectation values for
+T_end - last temperature (temperature step size is 0.01)
+rand_state - controls if initial configuration is random or ordered, set to 1 for random
+cut_off_num - number of initial MC-cycles to cut off per processor
+
+Functions are located in 'ising.cpp'. By default, running the program does not write
+individual energies and magnetic momentum to file. This is to save computation time
+but can be enabled by setting the boolean variable 'save_arrays' to 'true'.
+*/
+#include "ising.h"
 int main(int argc, char* argv[])
 {
   // ------ Initialize variables ------
-  int numMC = atoi(argv[1]);     // num. of MC-cycles
+  int numMC = atoi(argv[1]);
   int L = atoi(argv[2]);
   double T_start = atof(argv[3]);
   double T_final = atof(argv[4]);
-  int rand_state = atoi(argv[5]); // rand_state=1 gives a random initial configuration
-  int cut_off_num = atoi(argv[6]); // number of initial MC-cycles to cut off
+  int rand_state = atoi(argv[5]);
+  int cut_off_num = atoi(argv[6]);
   int n = L*L;
 
   double energy, magmom;
@@ -19,14 +30,7 @@ int main(int argc, char* argv[])
   bool save_arrays = false;
   bool save_means = true;
 
-  //cout << vec_len <<endl;
-
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
-  //vec Energy2 = zeros(numMC);
-  //vec Magmom2 = zeros(numMC);
-  //vec absMagmom = zeros(numMC);
-  //vec Cv = zeros(numMC);
-  //vec Chi = zeros(numMC);
 
   // ------ Initialize random number generator ------
   random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -75,7 +79,6 @@ int main(int argc, char* argv[])
   vec M = zeros(n_temps); vec M2 = zeros(n_temps);
   vec absM = zeros(n_temps); vec C_V = zeros(n_temps);
   vec chi = zeros(n_temps);
-//  ivec counter = zeros<ivec>(n_temps);
   int *counter = new int[n_temps];
 
   int i = 0;    // counter for number of temperatures computed
