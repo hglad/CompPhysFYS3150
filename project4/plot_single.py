@@ -26,14 +26,14 @@ def plot_arrays_c(files_T1, files_T2, L):
         plt.plot(x, E2)
         plt.title('Total energy per MC-cycle, %1.0f x %1.0f lattice' % (L,L))
         plt.legend(["T = 1.0", "T = 2.4"])
-        plt.grid('on'); plt.ylabel('E [$JL^2$]'); plt.xlabel('MC-cycle')
+        plt.grid('on'); plt.ylabel('E'); plt.xlabel('MC-cycle')
         plt.figure()
 
         plt.plot(x, M1)
         plt.plot(x, M2)
         plt.title('Total magnetisation per MC-cycle, %1.0f x %1.0f lattice' % (L,L))
         plt.legend(["T = 1.0", "T = 2.4"])
-        plt.grid('on'); plt.ylabel('M [$s$]'); plt.xlabel('MC-cycle')
+        plt.grid('on'); plt.ylabel('M'); plt.xlabel('MC-cycle')
 
         plt.show()
 
@@ -54,21 +54,21 @@ def plot_expectation_c(files_T1, files_T2, L):
     plt.semilogy(MC, counts, '-o')
     plt.xlabel('Num. of MC-cycles'); plt.ylabel('Num. of accepted states')
     plt.grid('on')
-    plt.legend(["T = 1.0 kT/J", "T = 2.4 kT/J"])
+    plt.legend(["T = 1.0", "T = 2.4"])
     plt.figure()
 
     plt.title('Mean energy per spin, %1.0f x %1.0f lattice' % (L,L))
     plt.plot(MC, E, '-o')
-    plt.xlabel('Num. of MC-cycles'); plt.ylabel('Mean energy [$J$]')
+    plt.xlabel('Num. of MC-cycles'); plt.ylabel('$\\langle E \\rangle$')
     plt.grid('on')
     plt.legend(["T = 1.0", "T = 2.4"])
     plt.figure()
 
     plt.title('Mean magnetisation per spin, %1.0f x %1.0f lattice' % (L,L))
     plt.plot(MC, absM, '-o')
-    plt.xlabel('Num. of MC-cycles'); plt.ylabel('Mean magnetisation [s]')
+    plt.xlabel('Num. of MC-cycles'); plt.ylabel('$\\langle |M| \\rangle$')
     plt.grid('on')
-    plt.legend(["T = 1.0 kT/J", "T = 2.4 kT/J"])
+    plt.legend(["T = 1.0", "T = 2.4"])
 
     plt.show()
 
@@ -103,30 +103,30 @@ def plot_temps_e():
 
     plt.figure()
     plt.plot(T_range, chi)
-    plt.title('Susceptibility for different lattices, %s MC-cycles' % MC_string )
+    plt.title('Susceptibility of different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
-    plt.xlabel('T [kT/J]'); plt.ylabel('$\\chi$')
+    plt.xlabel('T'); plt.ylabel('$\\langle \\chi \\rangle$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, C_V)
-    plt.title('Heat capacity for different lattices, %s MC-cycles' % MC_string )
+    plt.title('Heat capacity of different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
-    plt.xlabel('T [kT/J]'); plt.ylabel('$C_V$')
+    plt.xlabel('T'); plt.ylabel('$\\langle C_V \\rangle$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, absM)
-    plt.title('Mean magnetisation for different lattices, %s MC-cycles' % MC_string )
+    plt.title('Mean magnetisation of different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
-    plt.xlabel('T [kT/J]'); plt.ylabel('$|M|$')
+    plt.xlabel('T'); plt.ylabel('$\\langle |M| \\rangle$')
     plt.grid('on')
 
     plt.figure()
     plt.plot(T_range, E)
-    plt.title('Mean energy for different lattices, %s MC-cycles' % MC_string )
+    plt.title('Mean energy of different lattices, %s MC-cycles' % MC_string )
     plt.legend(legends)
-    plt.xlabel('T [kT/J]'); plt.ylabel('$E$')
+    plt.xlabel('T'); plt.ylabel('$\\langle E \\rangle$')
     plt.grid('on')
 
     plt.show()
@@ -167,10 +167,10 @@ for i in range(len(T_L40)):
 for i in range(len(T_L20)):
     means_T_L20.append('results/means_L=20T=%sMC=100000.txt' % T_L20[i])
 """
-#plot_expectation_c(means_T1, means_T2, L=20)
+plot_expectation_c(means_T1, means_T2, L=20)
 #plot_arrays_c(arrays_T1, arrays_T2, L=20)
 
-plot_temps_e()
+#plot_temps_e()
 #
 
 #plot_single_arrays('results/arrays_L=20T=1.00MC=10000.txt')

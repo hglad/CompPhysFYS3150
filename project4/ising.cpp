@@ -96,27 +96,22 @@ void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<d
 {     // a single MC cycle
   uniform_int_distribution<int> RNGpos(0, L-1);
   uniform_real_distribution<double> dist(0.0, 1.0);
-  for (int i = 0; i < L; i++)
+  for (int i = 0; i < L*L; i++)
   {
-    for (int j = 0; j < L; j++)
-    {
       int x = RNGpos(gen);
       int y = RNGpos(gen);
+
       double dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
-  //    cout << dE << endl;
       // Metropolis algorithm
-      // compare w with random number r
-      double r = dist(gen);
-      if (r <= w.find(dE)->second)    // find corresponding energy to dE
+      // compare w with random number using dist(gen)
+      if (dist(gen) <= w.find(dE)->second)    // find corresponding energy to dE
       {
         counter += 1;
-        S(x, y)  *= -1;           // flip spin
+        S(x, y) *= -1;           // flip spin
         energy  += dE;
         magmom  += 2*S(x, y);     // difference in mag. after flip
       }
-    }
   }
-  //cout << S(x, y) << endl;
   return;
 }
 
