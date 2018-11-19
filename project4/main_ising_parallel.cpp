@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
       absM(i) = total(4);
 
       C_V(i) = (E2(i) - E(i)*E(i))/(T*T);
-      chi(i) = (M2(i) - absM(i)*absM(i))/(T);
+      chi(i) = (M2(i) - M(i)*M(i))/(T);
 
       cout << "Results: T = " << T << endl;
-    //  cout << E(i)/n << ' ' << absM(i)/n << ' ' << M2(i)/n << ' ' << C_V(i)/n << ' ' << chi(i)/n << endl;
+      cout << E(i) << ' ' << absM(i) << ' ' << M2(i) << ' ' << C_V(i) << ' ' << chi(i) << endl;
       if (save_arrays == true)
       {
         write_arrays(Energy, Magmom, no_intervals, L, T);
