@@ -18,6 +18,8 @@ void init_params(mat S, double &E, double &M)
   }
 }
 
+// The write functions require that a 'results' folder already exists in the same
+// location as the .cpp files! 
 void write_arrays(vec A, vec B, int numMC, int L, float T)
 {
   string temp = to_string(T);

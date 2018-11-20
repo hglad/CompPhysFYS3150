@@ -193,6 +193,9 @@ def plot_temps_e():
     plt.xlabel('$L^{-1}$', size=15); plt.ylabel('$T_C$')
     plt.show()
 
+#----------------------- a ----------------------
+print_analytical()
+
 #----------------------- c ----------------------
 # L = 20
 # files with different MC-cycles for means
@@ -213,7 +216,6 @@ for MC in MC2:
     arrays1.append('results/arrays_L=20T=1.00MC=%s.txt' % MC)
     arrays2.append('results/arrays_L=20T=2.40MC=%s.txt' % MC)
 
-print_analytical()
 plot_expectation_c(means1, means2, L=20)
 plot_arrays_c(arrays1, arrays2, L=20)
 

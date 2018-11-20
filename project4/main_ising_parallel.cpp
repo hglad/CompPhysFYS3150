@@ -1,4 +1,5 @@
 /* -------- Documentation --------
+
 compile: mpic++ -o3 -o main.x main_ising_parallel.cpp ising.cpp -DARMA_DONT_USE_WRAPPER -lblas -llapack
 
 command line arguments in order:
@@ -12,11 +13,27 @@ cut_off_num - number of initial MC-cycles to cut off per processor
 Functions are located in 'ising.cpp'. By default, running the program does not write
 individual energies and magnetic momentum to file. This is to save computation time
 but can be enabled by setting the boolean variable 'save_arrays' to 'true'.
+
+IMPORTANT: make sure that a 'results' folder already exists in the same location as
+this file, as the values produced are written to a folder with this name. This is
+to avoid clutter in the project folder, as a lot of data is produced.
 */
 #include "ising.h"
 int main(int argc, char* argv[])
 {
-  // ------ Initialize variables ------
+  
+  if (argc < 7)
+	{
+		cout << "Input error: too few arguments. See file documentation." << endl;
+		exit(1);
+	}
+	if (argc > 7)
+	{
+		cout << "Input error: too many arguments. See file documentation." << endl;
+		exit(1);
+	}
+
+  // Initialize variables
   int numMC = atoi(argv[1]);
   int L = atoi(argv[2]);
   double T_start = atof(argv[3]);
@@ -32,7 +49,7 @@ int main(int argc, char* argv[])
 
   vec ValueSums = zeros<vec>(5);              // sum of various parameters
 
-  // ------ Initialize random number generator ------
+  // Initialize random number generators
   random_device rd;  //Will be used to obtain a seed for the random number engine
   mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
@@ -118,7 +135,6 @@ int main(int argc, char* argv[])
       time_end = MPI_Wtime();
       total_time = time_end - time_start;
       cout << "Time = " <<  total_time << " on number of processors: " << numprocs << endl;
-      //cut_off_mc = numMC - 3000;
       total /= (numMC - cut_off_num*numprocs);
       // multiply cut off with number of processors since every process cuts off
       // the same amount of cycles
