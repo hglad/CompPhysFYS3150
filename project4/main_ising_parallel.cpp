@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
 
   // ------ Initialize random number generator ------
   random_device rd;  //Will be used to obtain a seed for the random number engine
-  //mt19937_64 gen(10); //Standard mersenne_twister_engine seeded with rd()
   mt19937_64 gen(rd());
   uniform_real_distribution<double> dist(0.0, 1.0);
   uniform_int_distribution<int> RNGpos(0, L-1);
@@ -60,7 +59,7 @@ int main(int argc, char* argv[])
     mc_end = numMC;
   }
 
-  // ------ Set up initial spins and initial energy, magnetization ------
+  // Set up initial spins and initial energy, magnetization
   mat S = init_spins(L, gen, rand_state);
   init_params(S, energy, magmom);   // initial energy, magnetic momentum
   Energy(0) = energy; Magmom(0) = fabs(magmom);
@@ -83,15 +82,12 @@ int main(int argc, char* argv[])
 
   int i = 0;    // counter for number of temperatures computed
   int start_sum = mc_start + cut_off_num;
-//  int counter__;
-  //int local_k = my_rank*(numMC/numprocs);   //local start index for processor
   for (double T = T_start; T <= T_final*1.0001; T+=T_step)
   {
     counter[i] = 0;
     time_start = MPI_Wtime();
-    map<double, double> w = transitions(T);     // create dictionary
-    //counter = 0;              // accepted states
-    reset_sums(ValueSums, total);   // reset sums for expectation values
+    map<double, double> w = transitions(T); // create dictionary
+    reset_sums(ValueSums, total);           // reset sums for expectation values
     for (int k = mc_start; k < mc_end; k++)
     {
       MC_cycle(S, L, counter[i], energy, magmom, w, gen);
@@ -102,7 +98,7 @@ int main(int argc, char* argv[])
         Magmom(k) = fabs(magmom);
       }
 
-      if (k > start_sum)     // do not use first 3000 cycles for every process
+      if (k > start_sum)     // do not add first MC-cycles to sum
       {
         ValueSums(0) += energy; ValueSums(1) += energy*energy;
         ValueSums(2) += magmom; ValueSums(3) += magmom*magmom;
@@ -138,7 +134,7 @@ int main(int argc, char* argv[])
 
       cout << "Results: T = " << T << endl;
       printf ("E = %1.4f absM = %1.4f M**2 = %1.4f C_V = %1.4f chi = %1.4f\n", E(i), absM(i), M2(i), C_V(i), chi(i));
-  //    printf ("Some different radices: %d %x %o %#x %#o \n", 100, 100, 100, 100, 100);
+
       if (save_arrays == true)
       {
         write_arrays(Energy, Magmom, no_intervals, L, T);
@@ -157,46 +153,5 @@ int main(int argc, char* argv[])
 
   MPI_Finalize();
 
-  //Energy.save("ising_data.txt", arma_ascii);
   return 0;
 }
-
-// send/receive routine (unused)
-/*
-if (my_rank != 0)
-{
-  MPI_Send(Energy, numMC, MPI_DOUBLE, 0, 50, MPI_COMM_WORLD);
-}
-
-if (my_rank == 0)
-{
-  double *energies = new double[numMC];
-  string temp = to_string(T);
-  MPI_Status status;
-  ofstream myfile;
-  // open and close to clear previous contents of file
-  myfile.open ("ising_arrays_" + temp + ".txt");
-  myfile.close();
-
-  myfile.open ("ising_arrays_" + temp + ".txt", ios_base::app);
-
-  for (int i=0; i < numMC; i++)
-  {
-      myfile << energies[i] << ' ' << Magmom(i) << endl;
-  }
-
-  for (int rank=1; rank < numprocs; rank++)
-  {
-    MPI_Recv(energies, numMC, MPI_DOUBLE, rank, 50, MPI_COMM_WORLD, &status);
-
-    for (int i=0; i < numMC; i++)
-    {
-      myfile << energies[i] << ' ' << Magmom(i) << endl;
-    }
-
-    //write_arrays(energies, Magmom, numMC, T);
-  }
-  myfile.close();
-
-}
-*/

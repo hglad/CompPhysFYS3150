@@ -39,7 +39,7 @@ void write_means(vec E, vec absM, vec M2, vec C_V, vec chi, int *counter, int nu
 {
   string dim = to_string(L);
   string MC = to_string(numMC);
-  //double T_step = T_vec(1) - T_vec(0);
+
   int n_temps = T_vec.n_elem;
   double T_start = T_vec(0);
   double T_final = T_vec(n_temps-1);
@@ -95,14 +95,14 @@ void MC_cycle(mat &S, int L, int& counter, double& energy, double& magmom, map<d
       int y = RNGpos(gen);
 
       double dE = 2*S(x, y) * (S(x, PBC(y, L, -1)) + S(PBC(x, L, -1), y) + S(x, PBC(y, L, 1)) + S(PBC(x, L, 1), y));
-      // Metropolis algorithm
+      // Metropolis algorithm:
       // compare w with random number using dist(gen)
-      if (dist(gen) <= w.find(dE)->second)    // find corresponding energy to dE
+      if (dist(gen) <= w.find(dE)->second)   // find corresponding energy to dE
       {
-        counter += 1;
+        counter += 1;            // counts number of states accepted
         S(x, y) *= -1;           // flip spin
         energy  += dE;
-        magmom  += 2*S(x, y);     // difference in mag. after flip
+        magmom  += 2*S(x, y);    // difference in mag. after flip
       }
   }
   return;
@@ -120,7 +120,7 @@ map<double, double> transitions(double T)
 
   return possible_E;
 }
-
+// Function to reset sums needed for expectation values inbetween calculations
 void reset_sums(vec &ValueSums, vec &total)
 {
   ValueSums(0) = 0; ValueSums(1) = 0;
