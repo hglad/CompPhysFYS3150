@@ -137,7 +137,8 @@ int main(int argc, char* argv[])
       chi(i) = (M2(i) - M(i)*M(i))/(T);
 
       cout << "Results: T = " << T << endl;
-      cout << E(i) << ' ' << absM(i) << ' ' << M2(i) << ' ' << C_V(i) << ' ' << chi(i) << endl;
+      printf ("E = %1.4f absM = %1.4f M**2 = %1.4f C_V = %1.4f chi = %1.4f\n", E(i), absM(i), M2(i), C_V(i), chi(i));
+  //    printf ("Some different radices: %d %x %o %#x %#o \n", 100, 100, 100, 100, 100);
       if (save_arrays == true)
       {
         write_arrays(Energy, Magmom, no_intervals, L, T);
