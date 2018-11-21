@@ -19,9 +19,10 @@ this file, as the values produced are written to a folder with this name. This i
 to avoid clutter in the project folder, as a lot of data is produced.
 */
 #include "ising.h"
+#include "mpi.h"
 int main(int argc, char* argv[])
 {
-  
+
   if (argc < 7)
 	{
 		cout << "Input error: too few arguments. See file documentation." << endl;

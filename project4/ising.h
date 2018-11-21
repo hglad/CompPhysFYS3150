@@ -8,7 +8,6 @@
 #include <cmath>
 #include <random>
 #include <map>
-#include "mpi.h"
 #include <string>
 
 using namespace arma;
