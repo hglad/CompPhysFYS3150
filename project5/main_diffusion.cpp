@@ -11,17 +11,12 @@ int main(int argc, char const *argv[])
 
   double alpha = dt/(dx*dx);
   double a, c;
-  /*
-  mat A = init_forward(n, 2);
+  vec d = zeros(nx+2);
 
-  double a = A(0,1);
-  double d = A(0,0);
-  double c = A(1,0);
-  */
-  a = c = alpha;
-  vec d = ones(nx+2)*(1 - 2*alpha);
-//  vec d_tilde = d*ones(nx+2);
-//  vec f_tilde = ones(nx+2);
+  init_forward(alpha, a, c, d);
+//  init_backward(alpha, a, c, d);
+
+  //vec d = ones(nx+2)*(1 - 2*alpha);
   vec u = zeros(nx+2);      // current step we want to solve for
   vec y = zeros(nx+2);      // values at previous step
 
@@ -30,13 +25,13 @@ int main(int argc, char const *argv[])
   for (int l=1; l < T; l++)
   {
     tridiag(a, c, d, y, u, nx);
-    u(0) = 0;   u(nx+1) = 0;
+    u(0) = 0;   u(nx+1) = 1;
     for (int i=0; i < nx; i++)
     {
       y(i) = u(i);
     }
 
   }
-
+  cout << u << endl;
   return 0;
 }

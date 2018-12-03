@@ -1,16 +1,19 @@
 #include "diffusion.h"
 
-mat init_forward(int n, double alpha)
+void init_forward(double alpha, double &a, double &c, vec& d)
 {
-  mat A = zeros(n,n);
+  a = c = alpha;
+  d *= (1 - 2*alpha);
 
-  for (int i=0; i < n; i++)
-  {
-    A(i, i)    = 1 - 2*alpha;      // Main diagonal
-    A(i, i+1)  = alpha;      // Upper diagonal values
-    A(i+1, i)  = alpha;      // Lower diagonal values
-  }
-  return A;
+  return;
+}
+
+void init_backward(double alpha, double &a, double &c, vec& d)
+{
+  a = c = -alpha;
+  d *= (1 + 2*alpha);
+
+  return;
 }
 
 void tridiag(double a, double c, vec d, vec& f, vec& u, int n)

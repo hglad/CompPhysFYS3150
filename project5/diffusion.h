@@ -1,5 +1,5 @@
-#ifndef ISING_H
-#define ISING_H
+#ifndef DIFFUSION_H
+#define DIFFUSION_H
 
 #include <armadillo>
 #include <iostream>
@@ -11,8 +11,10 @@
 using namespace arma;
 using namespace std;
 
-mat init_forward(int n, double alpha);
+void init_forward(double alpha, double &a, double &c, vec& d);
+
+void init_backward(double alpha, double &a, double &c, vec& d);
 
 void tridiag(double a, double c, vec d, vec& f, vec& u, int n);
 
-#endif /* ISING_H */
+#endif /* DIFFUSION_H */
