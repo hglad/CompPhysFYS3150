@@ -11,11 +11,19 @@
 using namespace arma;
 using namespace std;
 
-void init_forward(double alpha, double &a, double &c, vec& b);
+string init_method(int method, double dx, double alpha, double &a, double &c, vec &b);
 
 void init_backward(double alpha, double &a, double &c, vec& b);
 
-void tridiag(double a, double c, vec b, vec& y, vec& u, int nx);
+void init_crank(double alpha, double &a, double &c, vec& b);
+
+void forward(double alpha, vec& u, int nx);
+
+void backward(double a, double c, vec b, double alpha, vec& u, vec y, int nx);
+
+void crank(double a, double c, vec b, double alpha, vec& u, vec y, int nx);
+
+void tridiag(double a, double c, vec b, vec y, vec& u, int nx);
 
 //void write_sol(vec u, string filename);
 
