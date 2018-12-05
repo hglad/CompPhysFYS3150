@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-u = np.loadtxt('crank_dx=0.010.txt')
+u = np.loadtxt('1D_crank_dx=0.010.txt')
 u = u[:, 1:]            # Remove first column as it only contains indices
 print u.shape   # u[time, position]
 """

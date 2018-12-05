@@ -1,29 +1,30 @@
 #include "diffusion.h"
 
 // Return filename corresponding to method, initialize variables
-string init_method(int method, double dx, double alpha, double &a, double &c, vec &b)
+string init_method(int method, int dim, double dx, double alpha, double &a, double &c, vec &b)
 {
   string filename;
   string DX = to_string(dx);
+  string DIM = to_string(dim);
   DX = DX.substr(0,5);
 
   if (method == 0)    // Forward
   {
-    filename = ("forward_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "forward_dx=" + DX + ".txt");
   }
 
   if (method == 1)    // backward
   {
     a = c = -alpha;
     b *= (1 + 2*alpha);
-    filename = ("backward_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "backward_dx=" + DX + ".txt");
   }
 
   if (method == 2)    // crank
   {
     a = c = -alpha;
     b *= (2 + 2*alpha);
-    filename = ("crank_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "crank_dx=" + DX + ".txt");
   }
   return filename;
 }
@@ -60,6 +61,41 @@ void crank(double a, double c, vec b, double alpha, vec& u, vec y, int nx)
 
   u(0) = 0;
   u(nx+1) = 1;
+}
+
+void forward_2D(double alpha, mat& u, int nx, int ny)
+{
+  for (int i=1; i < nx+1; i++)
+  {
+    for (int j=1; j < ny+1; j++)
+    {
+      u(i,j) = (1 - 4*alpha)*u(i,j) + alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
+    }
+  }
+  set_BCs_2D(u);
+  return;
+}
+
+void backward_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny)
+{
+  return;
+}
+
+void crank_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny)
+{
+  return;
+}
+
+void set_BCs_2D(mat& u)
+{
+  int nx = u.n_cols;
+  int ny = u.n_rows;
+  for (int j=0; j < ny; j++)
+  {
+    u(nx-1, j) = 1;       // bottom
+    u(0, j) = 0;          // top
+  }
+  return;
 }
 
 void tridiag(double a, double c, vec b, vec y, vec& u, int nx)

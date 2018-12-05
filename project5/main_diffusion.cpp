@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
   vec u = zeros(nx+2);      // current step we want to solve for
   vec y = zeros(nx+2);      // values at previous step
 
-  string filename = init_method(method, dx, alpha, a, c, b);
+  string filename = init_method(method, 1, dx, alpha, a, c, b);
 //  init_backward(alpha, a, c, b);
 //  init_crank(alpha, a, c, b);
 
