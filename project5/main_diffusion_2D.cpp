@@ -5,11 +5,12 @@ int main(int argc, char const *argv[])
   int method = atoi(argv[1]);
 
   double h = 0.01;
-  double dt = atof(argv[2]);
-  double T = atof(argv[3]);
-//  double dt = alpha*h*h;
+  double alpha = 0.25;
+//  double dt = atof(argv[2]);
+  double T = atof(argv[2]);
+  double dt = alpha*h*h;
   double L = 1;
-  double alpha = dt/(h*h);
+//  double alpha = dt/(h*h);
   int nx = L/h;
   int ny = nx;
   int nt = T/dt;
@@ -44,8 +45,8 @@ int main(int argc, char const *argv[])
   }
 
   // Time loop
-  int counter = 1;    // counter used to avoid saving all values
-  for (int l=1; l < nt; l++)
+  int counter = 0;    // counter used to avoid saving all values
+  for (int l=0; l < nt; l++)
   {
     if (method == 0)    // Forward
     {
@@ -65,7 +66,7 @@ int main(int argc, char const *argv[])
     }
 
     // Write results
-    if (l == counter)
+    if ((l == counter) || (l == nt-1))
     {
       for (int i=0; i < nx+2; i++)
       {
@@ -75,6 +76,7 @@ int main(int argc, char const *argv[])
         }
         myfile << endl;
       }
+      cout << l << "/" << nt << endl;
       counter += 100;   // save every 100th time step
     }
 

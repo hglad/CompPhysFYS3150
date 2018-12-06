@@ -49,5 +49,5 @@ def updatefig(*args):
     im.set_array(mat[i])
     return im,
 
-ani = animation.FuncAnimation(fig, updatefig, interval=100, blit=True)
+ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=True)
 plt.show()
