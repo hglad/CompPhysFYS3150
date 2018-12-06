@@ -4,16 +4,19 @@ int main(int argc, char const *argv[])
 {
   int method = atoi(argv[1]);
 
-  double alpha = 0.25;
   double h = 0.01;
-  double dt = alpha*h*h;
-  double T = 1; double L = 1;
-
+  double dt = atof(argv[2]);
+  double T = atof(argv[3]);
+//  double dt = alpha*h*h;
+  double L = 1;
+  double alpha = dt/(h*h);
   int nx = L/h;
   int ny = nx;
   int nt = T/dt;
+  int add = nt/100;
 
   cout << nt << endl;
+  cout << alpha << endl;
 //  double alpha = dt/(dx*dx);
   double a, c;              // values for sub- and superdiagonal
   //vec d = zeros(nx+2);
@@ -72,12 +75,12 @@ int main(int argc, char const *argv[])
         }
         myfile << endl;
       }
-      counter += 100;
+      counter += 100;   // save every 100th time step
     }
 
 
   }
-  cout << u << endl;
+//  cout << u << endl;
   myfile.close();
   return 0;
 }
