@@ -5,14 +5,13 @@ int main(int argc, char const *argv[])
   int method = atoi(argv[1]);
 
   double alpha = 0.25;
-  double h = 0.1;
+  double h = 0.01;
   double dt = alpha*h*h;
   double T = 1; double L = 1;
 
   int nx = L/h;
   int ny = nx;
   int nt = T/dt;
-  nt = 3;
 
   cout << nt << endl;
 //  double alpha = dt/(dx*dx);
@@ -42,6 +41,7 @@ int main(int argc, char const *argv[])
   }
 
   // Time loop
+  int counter = 1;    // counter used to avoid saving all values
   for (int l=1; l < nt; l++)
   {
     if (method == 0)    // Forward
@@ -52,25 +52,29 @@ int main(int argc, char const *argv[])
     if (method == 1)    // Backward
     {
       backward_2D(a, c, b, alpha, u, y, nx, ny);
+      y = u;
     }
 
     if (method == 2)    // Crank
     {
       crank_2D(a, c, b, alpha, u, y, nx, ny);
+      y = u;
     }
 
     // Write results
-    for (int i=0; i < nx+2; i++)
+    if (l == counter)
     {
-      for (int j=0; j < ny+2; j++)
+      for (int i=0; i < nx+2; i++)
       {
-        myfile << u(i, j) << " ";
+        for (int j=0; j < ny+2; j++)
+        {
+          myfile << u(i, j) << " ";
+        }
+        myfile << endl;
       }
-      myfile << endl;
+      counter += 100;
     }
 
-
-    y = u;
 
   }
   cout << u << endl;
