@@ -37,17 +37,19 @@ for t in range(t_steps):
     #plt.imshow(mat[t], cmap= cm.coolwarm)
     #plt.show()
 
-fig = plt.figure()
+fig = plt.figure(figsize=(8,8))
 im = plt.imshow(mat[0], cmap=cm.coolwarm, animated=True)
+plt.colorbar()
+
 i = 0
 def updatefig(*args):
     global i
-    if (i < t_steps-1):
+    if (i < t_steps/2):
         i += 1
     else:
         i=0         # reset animation
     im.set_array(mat[i])
     return im,
 
-ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=True)
+ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True)
 plt.show()

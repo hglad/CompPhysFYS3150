@@ -76,6 +76,35 @@ void forward_2D(double alpha, mat& u, int nx, int ny)
   return;
 }
 
+void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny)
+{
+  double Q;
+  for (int i=1; i < nx+1; i++)
+  {
+    if (i < 20)
+    {
+      Q = 1.4e-6;
+    }
+
+    if ((i <= 40) || (i >= 20))
+    {
+      Q = 0.35e-6;
+    }
+
+    if (i > 40)
+    {
+      Q = 0.05e-6;
+    }
+
+    for (int j=1; j < ny+1; j++)
+    {
+      u(i,j) = (1 - 4*fac)*u(i,j) + fac*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1)) + Q/fac2*dt;
+    }
+  }
+  set_BCs_source(u);
+  return;
+}
+
 void backward_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny)
 {
   return;
@@ -94,6 +123,18 @@ void set_BCs_2D(mat& u)
   {
     u(nx-1, j) = 1;       // bottom
     u(0, j) = 0;          // top
+  }
+  return;
+}
+
+void set_BCs_source(mat& u)
+{
+  int nx = u.n_cols;
+  int ny = u.n_rows;
+  for (int j=0; j < ny; j++)
+  {
+    u(nx-1, j) = 1300;       // bottom
+    u(0, j) = 8;          // top
   }
   return;
 }

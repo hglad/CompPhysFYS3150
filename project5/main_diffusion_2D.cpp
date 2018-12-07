@@ -4,7 +4,7 @@ int main(int argc, char const *argv[])
 {
   int method = atoi(argv[1]);
 
-  double h = 0.01;
+  double h = 0.001;
   double alpha = 0.25;
 //  double dt = atof(argv[2]);
   double T = atof(argv[2]);
@@ -77,7 +77,7 @@ int main(int argc, char const *argv[])
         myfile << endl;
       }
       cout << l << "/" << nt << endl;
-      counter += 100;   // save every 100th time step
+      counter += 10000;   // save every 100th time step
     }
 
 

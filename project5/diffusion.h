@@ -29,7 +29,11 @@ void backward_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx,
 
 void crank_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny);
 
+void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny);
+
 void set_BCs_2D(mat& u);
+
+void set_BCs_source(mat& u);
 
 void tridiag(double a, double c, vec b, vec y, vec& u, int nx);
 
