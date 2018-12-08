@@ -20,9 +20,9 @@ int main(int argc, char const *argv[])
   cout << alpha << endl;
 //  double alpha = dt/(dx*dx);
   double a, c;              // values for sub- and superdiagonal
+  double b;
   //vec d = zeros(nx+2);
 
-  vec b = ones(nx+2);
   mat u = zeros(nx+2, ny+2);      // current step we want to solve for
   mat y = zeros(nx+2, ny+2);      // values at previous step
 
@@ -76,12 +76,13 @@ int main(int argc, char const *argv[])
         }
         myfile << endl;
       }
-      cout << l << "/" << nt << endl;
+  //    cout << l << "/" << nt << endl;
       counter += 100;   // save every 100th time step
     }
 
 
   }
+  cout << nt/100 << endl;
 //  cout << u << endl;
   myfile.close();
   return 0;

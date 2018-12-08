@@ -1,7 +1,7 @@
 #include "diffusion.h"
 
 // Return filename corresponding to method, initialize variables
-string init_method(int method, int dim, double dx, double alpha, double &a, double &c, vec &b)
+string init_method(int method, int dim, double dx, double alpha, double &a, double &c, double &b)
 {
   string filename;
   string DX = to_string(dx);
@@ -16,14 +16,14 @@ string init_method(int method, int dim, double dx, double alpha, double &a, doub
   if (method == 1)    // backward
   {
     a = c = -alpha;
-    b *= (1 + 2*alpha);
+    b = (1 + 2*alpha);
     filename = (DIM + "D_" + "backward_dx=" + DX + ".txt");
   }
 
   if (method == 2)    // crank
   {
     a = c = -alpha;
-    b *= (2 + 2*alpha);
+    b = (2 + 2*alpha);
     filename = (DIM + "D_" + "crank_dx=" + DX + ".txt");
   }
   return filename;
@@ -39,7 +39,7 @@ void forward(double alpha, vec& u, int nx)
   u(nx+1) = 1;
 }
 
-void backward(double a, double c, vec b, double alpha, vec& u, vec y, int nx)
+void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx)
 {
   tridiag(a, c, b, y, u, nx);
 
@@ -47,7 +47,7 @@ void backward(double a, double c, vec b, double alpha, vec& u, vec y, int nx)
   u(nx+1) = 1;
 }
 
-void crank(double a, double c, vec b, double alpha, vec& u, vec y, int nx)
+void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx)
 {
   for (int i=1; i < nx+1; i++)
   {
@@ -105,12 +105,12 @@ void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny)
   return;
 }
 
-void backward_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny)
+void backward_2D(double a, double c, double b, double alpha, mat& u, mat y, int nx, int ny)
 {
   return;
 }
 
-void crank_2D(double a, double c, vec b, double alpha, mat& u, mat y, int nx, int ny)
+void crank_2D(double a, double c, double b, double alpha, mat& u, mat y, int nx, int ny)
 {
   return;
 }
@@ -139,7 +139,7 @@ void set_BCs_source(mat& u)
   return;
 }
 
-void tridiag(double a, double c, vec b, vec y, vec& u, int nx)
+void tridiag(double a, double c, double b, vec y, vec& u, int nx)
 {
   // forward substitution
   vec b_tilde = zeros(nx+2); vec y_tilde = zeros(nx+2);
@@ -147,13 +147,13 @@ void tridiag(double a, double c, vec b, vec y, vec& u, int nx)
 
   y_tilde(0) = y(0);
   y_tilde(1) = y(1);
-  b_tilde(0) = b(0);
-  b_tilde(1) = b(1);
+  b_tilde(0) = b;
+  b_tilde(1) = b;
 
   for (int i=1; i < nx+2; i++)
   {
     a_b_tilde = a/b_tilde(i-1);	    // save FLOPS by only calculating once
-    b_tilde(i) = b(i) - a_b_tilde * c;
+    b_tilde(i) = b - a_b_tilde * c;
     y_tilde(i) = y(i) - a_b_tilde * y_tilde(i-1);
   }
 
@@ -169,35 +169,52 @@ void tridiag(double a, double c, vec b, vec y, vec& u, int nx)
 
 void analytic(int nx, int nt)
 {
+  string filename = ("1D_analytical_dx=0.100.txt");
+  ofstream myfile;
+  myfile.open(filename);
+
   double pi = M_PI;
-  int N = 100;
+  int N = 1000;
   float L = 1;
   double dx = L/(nx+1);
 
-  vec u = zeros<vec>(nx+2);
+  mat u = zeros(nt, nx+2);
   double An, sum;
   double t_max = 1;
-
-  u(0) = 0; u(nx+1) = 1;
+  double t;
+  double x;
 
   double dt = 1./nt;
-  //for (double t=dt; t <= 1; t+dt)
-//  {
-//    cout << t << endl;
+
+  for (int l=0; l < nt; l++)
+  {
+    u(l, 0) = 0;
+    u(l, nx+1) = L;
+    t = (double) l/nt;
     for (int i=1; i < nx+1; i++)
     {
-      cout << i << endl;
+      x = i*dx/L;
       sum = 0;
+
       for (int n=1; n < N+1; n++)
       {
         An = 2*cos(pi*n)/(pi*n*L);
-        sum += An * exp(-pi*pi*n*n*t_max) * sin(n*pi*i);
+        sum += An * exp(-pi*pi*n*n*t) * sin(n*pi*x);
       }
-      u(i) = i*dx/L + sum;
+      cout << sum << endl;
+      u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
+  //    cout << u(l, i) << endl;
+  //    myfile << l << " " <<  u(i, l) << " ";
     }
-    cout << u << endl;
-//  }
 
+    myfile << l << " ";
+    for (int i=0; i < nx+2; i++)
+    {
+      myfile << u(l, i) << " ";
+    }
+    myfile << endl;
+
+  }
 
   return;
 }

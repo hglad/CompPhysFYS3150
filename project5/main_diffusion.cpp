@@ -11,26 +11,19 @@ int main(int argc, char const *argv[])
 
   int nx = L/dx;
   int nt = T/dt;
+  analytic(nx, nt);
 
-  cout << nt << endl;
-//  double alpha = dt/(dx*dx);
-  cout << alpha << endl;
   double a, c;              // values for sub- and superdiagonal
+  double b;
   //vec d = zeros(nx+2);
-
-  vec b = ones(nx+2);
   vec u = zeros(nx+2);      // current step we want to solve for
   vec y = zeros(nx+2);      // values at previous step
 
   string filename = init_method(method, 1, dx, alpha, a, c, b);
-//  init_backward(alpha, a, c, b);
-//  init_crank(alpha, a, c, b);
-
   u(0) = 0;   u(nx+1) = 1;
 //  y(0) = 0;   y(nx+1) = 1;
 
   // File output
-  analytic(nx, nt);
   ofstream myfile;
   myfile.open(filename);
 
