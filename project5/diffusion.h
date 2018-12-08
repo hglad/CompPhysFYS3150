@@ -7,6 +7,8 @@
 #include <time.h>
 #include <cmath>
 #include <random>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 using namespace arma;
 using namespace std;
@@ -36,6 +38,8 @@ void set_BCs_2D(mat& u);
 void set_BCs_source(mat& u);
 
 void tridiag(double a, double c, vec b, vec y, vec& u, int nx);
+
+void analytic(int nx, int nt);
 
 //void write_sol(vec u, string filename);
 

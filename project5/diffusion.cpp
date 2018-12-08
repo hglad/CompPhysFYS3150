@@ -166,3 +166,38 @@ void tridiag(double a, double c, vec b, vec y, vec& u, int nx)
 //  y(nx+1) = y(nx+1);
 
 }
+
+void analytic(int nx, int nt)
+{
+  double pi = M_PI;
+  int N = 100;
+  float L = 1;
+  double dx = L/(nx+1);
+
+  vec u = zeros<vec>(nx+2);
+  double An, sum;
+  double t_max = 1;
+
+  u(0) = 0; u(nx+1) = 1;
+
+  double dt = 1./nt;
+  //for (double t=dt; t <= 1; t+dt)
+//  {
+//    cout << t << endl;
+    for (int i=1; i < nx+1; i++)
+    {
+      cout << i << endl;
+      sum = 0;
+      for (int n=1; n < N+1; n++)
+      {
+        An = 2*cos(pi*n)/(pi*n*L);
+        sum += An * exp(-pi*pi*n*n*t_max) * sin(n*pi*i);
+      }
+      u(i) = i*dx/L + sum;
+    }
+    cout << u << endl;
+//  }
+
+
+  return;
+}

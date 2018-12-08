@@ -5,7 +5,7 @@ int main(int argc, char const *argv[])
   int method = atoi(argv[1]);
 
   double alpha = 0.5;
-  double dx = 0.01;
+  double dx = 0.1;
   double dt = alpha*dx*dx;
   double T = 1; double L = 1;
 
@@ -30,6 +30,7 @@ int main(int argc, char const *argv[])
 //  y(0) = 0;   y(nx+1) = 1;
 
   // File output
+  analytic(nx, nt);
   ofstream myfile;
   myfile.open(filename);
 

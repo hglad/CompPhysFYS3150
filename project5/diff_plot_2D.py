@@ -11,10 +11,10 @@ print u.shape   # u[time, position]
 n = len(u[0,:])
 x = np.linspace(0, 1, n)
 
-t_steps = int(len(u[:,0])/len(u[0,:]))    # get number of time steps from matrix
+t_steps = int(len(u[:,0])/len(u[0,:]))  # get number of time steps from matrix
 print t_steps
 mat = np.zeros((t_steps, n, n))
-
+# Create matrices for individual time steps
 for t in range(t_steps):
     start = n*t
     end = start+n
@@ -39,6 +39,7 @@ for t in range(t_steps):
 
 fig = plt.figure(figsize=(8,8))
 im = plt.imshow(mat[0], cmap=cm.coolwarm, animated=True)
+#plt.axis('equal')
 plt.colorbar()
 
 i = 0
