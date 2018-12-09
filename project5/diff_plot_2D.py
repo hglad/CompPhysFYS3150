@@ -5,7 +5,6 @@ import matplotlib.animation as animation
 
 u = np.loadtxt('2D_forward_dx=0.010.txt')
 
-#print u
 print u.shape   # u[time, position]
 
 n = len(u[0,:])
@@ -53,5 +52,5 @@ def updatefig(*args):
     im.set_array(mat[i])
     return im,
 
-ani = animation.FuncAnimation(fig, updatefig, interval=50, blit=True)
+ani = animation.FuncAnimation(fig, updatefig, interval=10, blit=True)
 plt.show()

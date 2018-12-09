@@ -6,20 +6,20 @@ int main(int argc, char const *argv[])
   double a, c, b;
   int ny, nx, nt, add;
   int method = atoi(argv[1]);
-
+  T = atof(argv[2]);
   h = 0.01;
   alpha = 0.25;
-  D = 1;
-  BC1 = 0; BC2 = 1;
+  D = 1;                  // diffusion constant
+  BC1 = 0; BC2 = 1;       // top and bottom of grid
 //  double dt = atof(argv[2]);
-  T = atof(argv[2]);
   dt = alpha*h*h;
   L = 1;
 //  double alpha = dt/(h*h);
   nx = L/h;
   ny = nx;
   nt = T/dt;
-  add = nt/100;
+  int saved_steps = 500;    // specify number of time steps to write to file
+  int save_interval = nt/saved_steps;
 
   mat u = zeros(nx+2, ny+2);      // current step we want to solve for
   mat y = zeros(nx+2, ny+2);      // values at previous step
@@ -75,12 +75,11 @@ int main(int argc, char const *argv[])
         myfile << endl;
       }
   //    cout << l << "/" << nt << endl;
-      counter += 100;   // save every 100th time step
+      counter += save_interval;
     }
 
-
   }
-  cout << nt/100 << endl;
+  cout << saved_steps << " timesteps saved to file " << filename << endl;
 //  cout << u << endl;
   myfile.close();
   return 0;
