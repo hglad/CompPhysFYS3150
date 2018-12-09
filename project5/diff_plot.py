@@ -7,20 +7,24 @@ u = u[:, 1:]            # Remove first column as it only contains indices
 exact_u = exact_u[:, 1:]
 print u.shape   # u[time, position]
 
-def time_compare(u):
+def time_compare(u, exact_u):
     nx = len(u[0,:])
+    nx_exact = len(exact_u[0,:])
     t = len(u[:,0])
     x = np.linspace(0, 1, nx)
-
+    x_exact = np.linspace(0,1,nx_exact)
+    """
     for i in range(0, t, 10):
         plt.plot(x, u[i,:])
     plt.show()
     """
-    plt.plot(x, u[0,:])
-    plt.plot(x, u[10, :])
+    #plt.plot(x, u[0,:])
     plt.plot(x, u[-1,:])
+    #plt.plot(x, u[0,:])
+    plt.plot(x_exactKUK, exact_u[-1,:])
+    plt.grid('on')
     plt.show()
-    """
+
 
 def animate(u, exact_u):
     nx = len(u[0,:])
@@ -51,14 +55,14 @@ def animate(u, exact_u):
         line2.set_ydata( exact_u[i, :])
         plt.title('Timestep: %s' % i)
         plt.draw() # Update the plot
-        plt.pause(0.1)
+        plt.pause(0.001)
 
     # Turn off interactive mode
     plt.ioff()
     # Add show so that windows do not automatically close
     plt.show()
 
-time_compare(u)
+#time_compare(u, exact_u)
 animate(u, exact_u)
 
 """

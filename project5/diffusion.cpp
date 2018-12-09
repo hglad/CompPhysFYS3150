@@ -29,22 +29,19 @@ string init_method(int method, int dim, double dx, double alpha, double &a, doub
   return filename;
 }
 
-void forward(double alpha, vec& u, int nx)
+void forward(double alpha, vec& u, int nx, double BC1, double BC2)
 {
   for (int i=1; i < nx+1; i++)
   {
     u(i) = (1 - 2*alpha)*u(i) + alpha*u(i+1) + alpha*u(i-1);
   }
-  u(0) = 0;
-  u(nx+1) = 1;
+  set_BCs_1D(u, nx, BC1, BC2);
 }
 
-void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx)
+void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx, double BC1, double BC2)
 {
   tridiag(a, c, b, y, u, nx);
-
-  u(0) = 0;
-  u(nx+1) = 1;
+  set_BCs_1D(u, nx, BC1, BC2);
 }
 
 void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx)
@@ -63,7 +60,7 @@ void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx)
   u(nx+1) = 1;
 }
 
-void forward_2D(double alpha, mat& u, int nx, int ny)
+void forward_2D(double alpha, mat& u, int nx, int ny, double BC1, double BC2)
 {
   for (int i=1; i < nx+1; i++)
   {
@@ -72,11 +69,11 @@ void forward_2D(double alpha, mat& u, int nx, int ny)
       u(i,j) = (1 - 4*alpha)*u(i,j) + alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
     }
   }
-  set_BCs_2D(u);
+  set_BCs_2D(u, nx, ny, BC1, BC2);
   return;
 }
 
-void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny)
+void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny, double BC1, double BC2)
 {
   double Q;
   for (int i=1; i < nx+1; i++)
@@ -101,7 +98,7 @@ void forward_source(double fac, double fac2, double dt, mat& u, int nx, int ny)
       u(i,j) = (1 - 4*fac)*u(i,j) + fac*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1)) + Q/fac2*dt;
     }
   }
-  set_BCs_source(u);
+  set_BCs_2D(u, nx, ny, BC1, BC2);
   return;
 }
 
@@ -115,26 +112,18 @@ void crank_2D(double a, double c, double b, double alpha, mat& u, mat y, int nx,
   return;
 }
 
-void set_BCs_2D(mat& u)
+void set_BCs_1D(vec& u, int nx, double BC1, double BC2)
 {
-  int nx = u.n_cols;
-  int ny = u.n_rows;
-  for (int j=0; j < ny; j++)
-  {
-    u(nx-1, j) = 1;       // bottom
-    u(0, j) = 0;          // top
-  }
-  return;
+  u(0) = BC1;
+  u(nx+1) = BC2;
 }
 
-void set_BCs_source(mat& u)
+void set_BCs_2D(mat& u, int nx, int ny, double BC1, double BC2)
 {
-  int nx = u.n_cols;
-  int ny = u.n_rows;
   for (int j=0; j < ny; j++)
   {
-    u(nx-1, j) = 1300;       // bottom
-    u(0, j) = 8;          // top
+    u(0, j) = BC1;          // top
+    u(nx+1, j) = BC2;       // bottom
   }
   return;
 }
@@ -150,7 +139,7 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
   b_tilde(0) = b;
   b_tilde(1) = b;
 
-  for (int i=1; i < nx+2; i++)
+  for (int i=1; i < nx+1; i++)
   {
     a_b_tilde = a/b_tilde(i-1);	    // save FLOPS by only calculating once
     b_tilde(i) = b - a_b_tilde * c;
@@ -164,10 +153,10 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
   }
 //  u(nx+1) = (y_tilde(nx) - u(nx+1)*c)/b_tilde(nx+1);
 //  y(nx+1) = y(nx+1);
-
+  return;
 }
 
-void analytic(int nx, int nt)
+void analytic(int nx, int nt, double L)
 {
   string filename = ("1D_analytical_dx=0.100.txt");
   ofstream myfile;
@@ -175,7 +164,6 @@ void analytic(int nx, int nt)
 
   double pi = M_PI;
   int N = 1000;
-  float L = 1;
   double dx = L/(nx+1);
 
   mat u = zeros(nt, nx+2);
@@ -188,20 +176,23 @@ void analytic(int nx, int nt)
 
   for (int l=0; l < nt; l++)
   {
+    /*
     u(l, 0) = 0;
     u(l, nx+1) = L;
+    */
     t = (double) l/nt;
-    for (int i=1; i < nx+1; i++)
+    for (int i=0; i < nx+2; i++)
     {
       x = i*dx/L;
       sum = 0;
 
       for (int n=1; n < N+1; n++)
       {
-        An = 2*cos(pi*n)/(pi*n*L);
-        sum += An * exp(-pi*pi*n*n*t) * sin(n*pi*x);
+        An = (2/L)*cos(pi*n)/(pi*n*L);
+
+        sum += An * exp(-pow(pi*n/L, 2)*t) * sin(n*pi*x/L);
       }
-      cout << sum << endl;
+  //    cout << sum << endl;
       u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
   //    cout << u(l, i) << endl;
   //    myfile << l << " " <<  u(i, l) << " ";
@@ -213,6 +204,11 @@ void analytic(int nx, int nt)
       myfile << u(l, i) << " ";
     }
     myfile << endl;
+
+    for (int i=0; i < nx+2; i++)
+    {
+      cout << u(nt-1, i) << endl;
+    }
 
   }
 
