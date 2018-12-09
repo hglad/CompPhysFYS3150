@@ -2,33 +2,31 @@
 
 int main(int argc, char const *argv[])
 {
+  double alpha, D, h, dt, T, L, BC1, BC2;
+  double a, c, b;
+  int ny, nx, nt, add;
   int method = atoi(argv[1]);
 
-  double h = 0.01;
-  double alpha = 0.25;
+  h = 0.01;
+  alpha = 0.25;
+  D = 1;
+  BC1 = 0; BC2 = 1;
 //  double dt = atof(argv[2]);
-  double T = atof(argv[2]);
-  double dt = alpha*h*h;
-  double L = 1;
+  T = atof(argv[2]);
+  dt = alpha*h*h;
+  L = 1;
 //  double alpha = dt/(h*h);
-  int nx = L/h;
-  int ny = nx;
-  int nt = T/dt;
-  int add = nt/100;
-
-  cout << nt << endl;
-  cout << alpha << endl;
-//  double alpha = dt/(dx*dx);
-  double a, c;              // values for sub- and superdiagonal
-  double b;
-  //vec d = zeros(nx+2);
+  nx = L/h;
+  ny = nx;
+  nt = T/dt;
+  add = nt/100;
 
   mat u = zeros(nx+2, ny+2);      // current step we want to solve for
   mat y = zeros(nx+2, ny+2);      // values at previous step
 
   string filename = init_method(method, 2, h, alpha, a, c, b);
 
-  set_BCs_2D(u);
+  set_BCs_2D(u, nx, ny, BC1, BC2);
 //  y(0) = 0;   y(nx+1) = 1;
 
   // File output
@@ -50,7 +48,7 @@ int main(int argc, char const *argv[])
   {
     if (method == 0)    // Forward
     {
-      forward_2D(alpha, u, nx, ny);
+      forward_2D(alpha, D, u, nx, ny, BC1, BC2);
     }
 
     if (method == 1)    // Backward

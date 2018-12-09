@@ -25,7 +25,7 @@ void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx,
 
 void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx);
 
-void forward_2D(double alpha, mat& u, int nx, int ny, double BC1, double BC2);
+void forward_2D(double alpha, double D, mat& u, int nx, int ny, double BC1, double BC2);
 
 void backward_2D(double a, double c, double b, double alpha, mat& u, mat y, int nx, int ny);
 

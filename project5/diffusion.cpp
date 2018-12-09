@@ -60,13 +60,13 @@ void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx)
   u(nx+1) = 1;
 }
 
-void forward_2D(double alpha, mat& u, int nx, int ny, double BC1, double BC2)
+void forward_2D(double alpha, double D, mat& u, int nx, int ny, double BC1, double BC2)
 {
   for (int i=1; i < nx+1; i++)
   {
     for (int j=1; j < ny+1; j++)
     {
-      u(i,j) = (1 - 4*alpha)*u(i,j) + alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
+      u(i,j) = (1 - 4*D*alpha)*u(i,j) + D*alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
     }
   }
   set_BCs_2D(u, nx, ny, BC1, BC2);
