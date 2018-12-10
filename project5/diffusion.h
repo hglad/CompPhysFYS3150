@@ -39,7 +39,7 @@ void set_BCs_2D(mat& u, int nx, int ny, double BC1, double BC2);
 
 void tridiag(double a, double c, double b, vec y, vec& u, int nx);
 
-void analytic(int nx, int nt, double L);
+void analytic(int nx, int nt, double L, int saved_steps);
 
 //void write_sol(vec u, string filename);
 

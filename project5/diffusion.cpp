@@ -156,7 +156,7 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
   return;
 }
 
-void analytic(int nx, int nt, double L)
+void analytic(int nx, int nt, double L, int saved_steps)
 {
   double dx = L/(nx+1);
   string DX = to_string(1./nx);
@@ -169,14 +169,24 @@ void analytic(int nx, int nt, double L)
   int N = 1000;
 
   mat u = zeros(nt, nx+2);
+  u(0, nx+1) = 1;
   double An, sum;
   double t_max = 1;
   double t;
   double x;
 
   double dt = 1./nt;
+  int save_interval = nt/saved_steps;
 
-  for (int l=0; l < nt; l++)
+  myfile << 0 << " ";
+  for (int i=0; i < nx+2; i++)
+  {
+    myfile << u(0, i) << " ";
+  }
+  myfile << endl;
+
+  int counter = 1;
+  for (int l=1; l < nt; l++)
   {
     /*
     u(l, 0) = 0;
@@ -199,14 +209,17 @@ void analytic(int nx, int nt, double L)
   //    cout << u(l, i) << endl;
   //    myfile << l << " " <<  u(i, l) << " ";
     }
-
-    myfile << l << " ";
-    for (int i=0; i < nx+2; i++)
+    if ((l == counter) || (l == nt-1))
     {
-      myfile << u(l, i) << " ";
-    }
-    myfile << endl;
+      myfile << l << " ";
+      for (int i=0; i < nx+2; i++)
+      {
+        myfile << u(l, i) << " ";
+      }
+      myfile << endl;
+      counter += save_interval;
 
+    }
 
   }
 

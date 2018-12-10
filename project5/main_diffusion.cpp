@@ -17,10 +17,14 @@ int main(int argc, char const *argv[])
 
   nx = L/dx;
   nt = T/dt;
+
+  int saved_steps = 500;    // specify number of time steps to write to file
+  int save_interval = nt/saved_steps;
+  cout << save_interval << endl;
 //    double alpha = dt/(dx*dx);
   if (find_analytic == 1)
   {
-    analytic(nx, nt, L);
+    analytic(nx, nt, L, saved_steps);
   }
 
   BC1 = 0; BC2 = 1;
@@ -43,7 +47,8 @@ int main(int argc, char const *argv[])
   myfile << endl;
 
   // Time loop
-  for (int l=0; l < nt; l++)
+  int counter = 1;
+  for (int l=1; l < nt; l++)
   {
     if (method == 0)    // Forward
     {
@@ -63,15 +68,19 @@ int main(int argc, char const *argv[])
     }
 
     // Write results
-    myfile << l << " ";
-    for (int i=0; i < nx+2; i++)
+    if ((l == counter) || (l == nt-1))
     {
-      myfile << u(i) << " ";
+      myfile << l << " ";
+      for (int i=0; i < nx+2; i++)
+      {
+        myfile << u(i) << " ";
+      }
+      myfile << endl;
+      counter += save_interval;
     }
-    myfile << endl;
-
   }
 //  cout << u << endl;
+  cout << saved_steps << " timesteps saved to file " << filename << endl;
   myfile.close();
   return 0;
 }
