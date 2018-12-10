@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 //    double alpha = dt/(dx*dx);
   if (find_analytic == 1)
   {
-    analytic(nx, nt, L, saved_steps);
+    analytic_1D(nx, nt, L, saved_steps);
   }
 
   BC1 = 0; BC2 = 1;

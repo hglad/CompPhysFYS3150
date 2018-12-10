@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.animation as animation
 
-u = np.loadtxt('2D_forward_dx=0.010.txt')
+u = np.loadtxt('2D_forward_dx=0.100.txt')
 
 print u.shape   # u[time, position]
 

@@ -156,7 +156,7 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
   return;
 }
 
-void analytic(int nx, int nt, double L, int saved_steps)
+void analytic_1D(int nx, int nt, double L, int saved_steps)
 {
   double dx = L/(nx+1);
   string DX = to_string(1./nx);
@@ -219,6 +219,84 @@ void analytic(int nx, int nt, double L, int saved_steps)
       myfile << endl;
       counter += save_interval;
 
+    }
+
+  }
+
+  return;
+}
+
+void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
+{
+  double dx = L/(nx+1);
+  double BC1, BC2;
+
+  string DX = to_string(1./nx);
+  DX = DX.substr(0,5);
+  string filename = ("1D_analytical_dx=" + DX + ".txt");
+  ofstream myfile;
+  myfile.open(filename);
+
+  double pi = M_PI;
+  int N = 1000;
+
+  //mat u = zeros(nt, nx+2);
+  mat u = zeros(nx+2, ny+2);
+  BC1 = 0; BC2 = 1;
+  set_BCs_2D(u, nx, ny, BC1, BC2);
+  double An, sum;
+  double t_max = 1;
+  double t;
+  double x;
+
+  double dt = 1./nt;
+  int save_interval = nt/saved_steps;
+
+  for (int i=0; i < nx+2; i++)
+  {
+    for (int j=0; j < ny+2; j++)
+    {
+      myfile << u(i, j) << " ";
+    }
+    myfile << endl;
+  }
+
+  int counter = 1;
+  for (int l=1; l < nt; l++)
+  {
+    /*
+    u(l, 0) = 0;
+    u(l, nx+1) = L;
+    */
+    t = (double) l/nt;
+    for (int i=0; i < nx+2; i++)
+    {
+      x = i*dx/L;
+      sum = 0;
+
+      for (int n=1; n < N+1; n++)
+      {
+        An = (2/L)*cos(pi*n)/(pi*n*L);
+
+        sum += An * exp(-pow(pi*n/L, 2)*t) * sin(n*pi*x/L);
+      }
+  //    cout << sum << endl;
+      u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
+  //    cout << u(l, i) << endl;
+  //    myfile << l << " " <<  u(i, l) << " ";
+    }
+    if ((l == counter) || (l == nt-1))
+    {
+      for (int i=0; i < nx+2; i++)
+      {
+        for (int j=0; j < ny+2; j++)
+        {
+          myfile << u(i, j) << " ";
+        }
+        myfile << endl;
+      }
+  //    cout << l << "/" << nt << endl;
+      counter += save_interval;
     }
 
   }
