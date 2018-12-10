@@ -57,7 +57,7 @@ def updatefig(*args):
     im.set_array(mat[i-1])
     return im,
 
-save = True
+save = False
 ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True)
 
 if save == True:
