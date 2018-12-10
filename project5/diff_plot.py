@@ -34,7 +34,7 @@ def update_line(*args):
         i=0
     lines[0].set_ydata(u[i-1, :])
     lines[1].set_ydata(exact_u[i-1, :])
-    ax.set_title("Timestep: %s/%s" % (i, t))
+    ax.set_title("Temperature distribution over time (%s points)\nTimestep: %s/%s" % (nx, i-1, t))
 #    ax.set_title("t = %1.3f / %1.1f" % (i*dt, 1))
     return lines
 
@@ -51,19 +51,22 @@ line, = ax.plot(x, u[0,:], label='Numerical')
 line2, = ax.plot(x, exact_u[0,:], label='Analytical')
 lines = [line, line2]      # FuncAnimation requires list of lines to update
 
+lines[0].set_ydata(u[0, :])
+lines[1].set_ydata(exact_u[0, :])
+
 i = 0
-ani = animation.FuncAnimation(fig, update_line, interval=10, blit=False)
+ani = animation.FuncAnimation(fig, update_line, interval=10, blit=False, frames=t)
 
 ax.set_ylim([0,1])
 ax.grid('on')
-ax.set_xlabel('x')
-ax.set_ylabel('T(x)')
+ax.set_xlabel('$x$')
+ax.set_ylabel('$T(x)$')
 ax.legend(loc='upper left')
 
-save = False
+save = True
 if save == True:
     # Set up formatting for the movie files
-    Writer = animation.writers['ffmpeg']        # requires ffmpeg to be installed
+    Writer = animation.writers['ffmpeg']      # requires ffmpeg to be installed
     writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=3000)
     ani.save('1D_anim.mp4', writer=writer)
 else:

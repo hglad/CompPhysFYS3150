@@ -18,23 +18,6 @@ for t in range(t_steps):
     start = n*t
     end = start+n
     mat[t] = u[start:end]
-    """
-    cmap = mpl.colors.ListedColormap(['blue','black','red'])
-    bounds=[-6, 2.2, 6]
-    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
-
-    # tell imshow about color map so that only set colors are used
-    img = pyplot.imshow(mat[t],interpolation='nearest',
-                        cmap = cmap,norm=norm)
-
-    # make a color bar
-    pyplot.colorbar(img,cmap=cmap,
-                    norm=norm,boundaries=bounds,ticks=[0,0.5,1])
-
-    pyplot.show()
-    """
-    #plt.imshow(mat[t], cmap= cm.coolwarm)
-    #plt.show()
 
 fig = plt.figure(figsize=(8,8))
 im = plt.imshow(mat[0], cmap=cm.coolwarm, animated=True)
@@ -57,12 +40,12 @@ def updatefig(*args):
     im.set_array(mat[i-1])
     return im,
 
-save = False
-ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True)
+save = True
+ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=t_steps/5)
 
 if save == True:
     # Set up formatting for the movie files
-    Writer = animation.writers['ffmpeg']        # requires ffmpeg to be installed
+    Writer = animation.writers['ffmpeg']      # requires ffmpeg to be installed
     writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
     ani.save('2D_anim.mp4', writer=writer)
 else:
