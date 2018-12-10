@@ -39,18 +39,31 @@ for t in range(t_steps):
 fig = plt.figure(figsize=(8,8))
 im = plt.imshow(mat[0], cmap=cm.coolwarm, animated=True)
 #plt.axis('equal')
-plt.colorbar()
-plt.title('asd')
+
+#legend
+cbar = plt.colorbar()
+cbar.ax.get_yaxis().labelpad = 15
+cbar.ax.set_ylabel('$T(x, y)$', rotation=270)
+plt.xlabel('$x$'); plt.ylabel('$y$')
+plt.title('Temperature distribution over time in a %s x %s grid' % (n,n))
 
 i = 0
 def updatefig(*args):
     global i
-    if (i < t_steps/2):
+    if (i < t_steps):
         i += 1
     else:
         i=0         # reset animation
-    im.set_array(mat[i])
+    im.set_array(mat[i-1])
     return im,
 
-ani = animation.FuncAnimation(fig, updatefig, interval=10, blit=True)
-plt.show()
+save = True
+ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True)
+
+if save == True:
+    # Set up formatting for the movie files
+    Writer = animation.writers['ffmpeg']        # requires ffmpeg to be installed
+    writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+    ani.save('2D_anim.mp4', writer=writer)
+else:
+    plt.show()

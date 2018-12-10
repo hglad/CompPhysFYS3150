@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-u = np.loadtxt('1D_forward_dx=0.100.txt')
-exact_u = np.loadtxt('1D_analytical_dx=0.100.txt')
+u = np.loadtxt('1D_backward_dx=0.010.txt')
+exact_u = np.loadtxt('1D_analytical_dx=0.010.txt')
 u = u[:, 1:]            # Remove first column as it only contains indices
 exact_u = exact_u[:, 1:]
 print u.shape   # u[time, position]
@@ -21,7 +21,7 @@ def time_compare(u, exact_u):
     #plt.plot(x, u[0,:])
     plt.plot(x, u[-1,:])
     #plt.plot(x, u[0,:])
-    plt.plot(x_exactKUK, exact_u[-1,:])
+    plt.plot(x_exact, exact_u[-1,:])
     plt.grid('on')
     plt.show()
 
@@ -55,7 +55,7 @@ def animate(u, exact_u):
         line2.set_ydata( exact_u[i, :])
         plt.title('Timestep: %s' % i)
         plt.draw() # Update the plot
-        plt.pause(0.001)
+        plt.pause(0.0001)
 
     # Turn off interactive mode
     plt.ioff()

@@ -4,12 +4,12 @@ int main(int argc, char const *argv[])
 {
   double alpha, dx, dt, T, L, BC1, BC2;
   double a, c, b;             // sub-, super- and main diagonal
-  int nx, nt;
-  int method = atoi(argv[1]);
+  int nx, nt, find_analytic, method;
+  dx = atof(argv[1]);
+  method = atoi(argv[2]);
+  find_analytic = atoi(argv[3]);
 
   alpha = 0.5;
-//  double dx = 1./120.;
-  dx = 0.1;
 //  double dt = 0.001;
   dt = alpha*dx*dx;
   //dt = 0.0001;
@@ -18,7 +18,10 @@ int main(int argc, char const *argv[])
   nx = L/dx;
   nt = T/dt;
 //    double alpha = dt/(dx*dx);
-  analytic(nx, nt, L);
+  if (find_analytic == 1)
+  {
+    analytic(nx, nt, L);
+  }
 
   BC1 = 0; BC2 = 1;
   vec u = zeros(nx+2);      // current step we want to solve for
@@ -40,7 +43,7 @@ int main(int argc, char const *argv[])
   myfile << endl;
 
   // Time loop
-  for (int l=1; l < nt; l++)
+  for (int l=0; l < nt; l++)
   {
     if (method == 0)    // Forward
     {
@@ -68,7 +71,7 @@ int main(int argc, char const *argv[])
     myfile << endl;
 
   }
-  cout << u << endl;
+//  cout << u << endl;
   myfile.close();
   return 0;
 }

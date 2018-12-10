@@ -158,13 +158,15 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
 
 void analytic(int nx, int nt, double L)
 {
-  string filename = ("1D_analytical_dx=0.100.txt");
+  double dx = L/(nx+1);
+  string DX = to_string(1./nx);
+  DX = DX.substr(0,5);
+  string filename = ("1D_analytical_dx=" + DX + ".txt");
   ofstream myfile;
   myfile.open(filename);
 
   double pi = M_PI;
   int N = 1000;
-  double dx = L/(nx+1);
 
   mat u = zeros(nt, nx+2);
   double An, sum;
@@ -205,10 +207,6 @@ void analytic(int nx, int nt, double L)
     }
     myfile << endl;
 
-    for (int i=0; i < nx+2; i++)
-    {
-      cout << u(nt-1, i) << endl;
-    }
 
   }
 
