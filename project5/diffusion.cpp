@@ -120,7 +120,7 @@ void set_BCs_1D(vec& u, int nx, double BC1, double BC2)
 
 void set_BCs_2D(mat& u, int nx, int ny, double BC1, double BC2)
 {
-  for (int j=0; j < ny; j++)
+  for (int j=0; j < ny+2; j++)
   {
     u(0, j) = BC1;          // top
     u(nx+1, j) = BC2;       // bottom

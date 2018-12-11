@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.animation as animation
 
-u = np.loadtxt('2D_forward_dx=0.100.txt')
+u = np.loadtxt('2D_forward_dx=0.010.txt')
 
 print u.shape   # u[time, position]
 
@@ -41,7 +41,7 @@ def updatefig(*args):
     return im,
 
 save = True
-ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=t_steps/5)
+ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=int(t_steps/5))
 
 if save == True:
     # Set up formatting for the movie files
