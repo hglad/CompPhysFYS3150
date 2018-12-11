@@ -9,6 +9,7 @@ print u.shape   # u[time, position]
 
 n = len(u[0,:])
 x = np.linspace(0, 1, n)
+dx = 1./n
 
 t_steps = int(len(u[:,0])/len(u[0,:]))  # get number of time steps from matrix
 print t_steps
@@ -19,34 +20,16 @@ for t in range(t_steps):
     end = start+n
     mat[t] = u[start:end]
 
+# Plot specific points in time
 fig = plt.figure(figsize=(8,8))
-im = plt.imshow(mat[0], cmap=cm.coolwarm, animated=True)
-#plt.axis('equal')
-
-#legend
+im = plt.imshow(mat[n], cmap=cm.coolwarm)
 cbar = plt.colorbar()
 cbar.ax.get_yaxis().labelpad = 15
-cbar.ax.set_ylabel('$T(x, y)$', rotation=270)
-plt.xlabel('$x$'); plt.ylabel('$y$')
-plt.title('Temperature distribution over time in a %s x %s grid' % (n,n))
+cbar.ax.set_ylabel('$T(x, y)$', rotation=270, size=15)
+plt.xlabel('$x$', size=15); plt.ylabel('$y$', size=15)
+plt.title('Steady state temperature distribution\nin a %s x %s grid' % (n,n), size=15)
 
-i = 0
-def updatefig(*args):
-    global i
-    if (i < t_steps):
-        i += 1
-    else:
-        i=0         # reset animation
-    im.set_array(mat[i-1])
-    return im,
+plt.savefig('figures/T(x)_2D_dx=%s_steady.eps' % (dx))
+plt.savefig('figures/T(x)_2D_dx=%s_steady.pdf' % (dx))
 
-save = True
-ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=True, frames=int(t_steps/5))
-
-if save == True:
-    # Set up formatting for the movie files
-    Writer = animation.writers['ffmpeg']      # requires ffmpeg to be installed
-    writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-    ani.save('2D_anim.mp4', writer=writer)
-else:
-    plt.show()
+plt.show()
