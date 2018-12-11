@@ -34,7 +34,7 @@ def update_line(*args):
         i=0
     lines[0].set_ydata(u[i-1, :])
     lines[1].set_ydata(exact_u[i-1, :])
-    ax.set_title("Temperature distribution over time (%s points)\nTimestep: %s/%s" % (nx, i-1, t))
+    ax.set_title("Temperature distribution over time (dx = %s)\nTimestep: %s/%s" % (1./(nx-2), i-1, t))
 #    ax.set_title("t = %1.3f / %1.1f" % (i*dt, 1))
     return lines
 
@@ -54,16 +54,17 @@ lines = [line, line2]      # FuncAnimation requires list of lines to update
 lines[0].set_ydata(u[0, :])
 lines[1].set_ydata(exact_u[0, :])
 
-i = 0
+i = 0   # Counter for updating plot
 ani = animation.FuncAnimation(fig, update_line, interval=10, blit=False, frames=t)
 
+# Figure formatting
 ax.set_ylim([0,1])
 ax.grid('on')
 ax.set_xlabel('$x$')
 ax.set_ylabel('$T(x)$')
 ax.legend(loc='upper left')
 
-save = True
+save = False
 if save == True:
     # Set up formatting for the movie files
     Writer = animation.writers['ffmpeg']      # requires ffmpeg to be installed
