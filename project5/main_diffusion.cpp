@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
   nx = L/dx;
   nt = T/dt;
 
-  int saved_steps = nt;    // specify number of time steps to write to file (subtract 2 because of start and end points)
+  int saved_steps = 500;    // specify number of time steps to write to file (subtract 2 because of start and end points)
   int save_interval = (nt/saved_steps);
   cout << save_interval << endl;
 //    double alpha = dt/(dx*dx);

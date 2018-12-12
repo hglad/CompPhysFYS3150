@@ -151,8 +151,6 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
   {
     u(i) = (y_tilde(i) - u(i+1)*c)/b_tilde(i);
   }
-//  u(nx+1) = (y_tilde(nx) - u(nx+1)*c)/b_tilde(nx+1);
-//  y(nx+1) = y(nx+1);
   return;
 }
 
@@ -188,10 +186,7 @@ void analytic_1D(int nx, int nt, double L, int saved_steps)
   int counter = 1;
   for (int l=1; l < nt; l++)
   {
-    /*
-    u(l, 0) = 0;
-    u(l, nx+1) = L;
-    */
+
     t = (double) l/nt;
     for (int i=0; i < nx+2; i++)
     {
@@ -204,10 +199,8 @@ void analytic_1D(int nx, int nt, double L, int saved_steps)
 
         sum += An * exp(-pow(pi*n/L, 2)*t) * sin(n*pi*x/L);
       }
-  //    cout << sum << endl;
       u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
-  //    cout << u(l, i) << endl;
-  //    myfile << l << " " <<  u(i, l) << " ";
+
     }
     if ((l == counter) || (l == nt-1))
     {
@@ -264,10 +257,6 @@ void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
   int counter = 1;
   for (int l=1; l < nt; l++)
   {
-    /*
-    u(l, 0) = 0;
-    u(l, nx+1) = L;
-    */
     t = (double) l/nt;
     for (int i=0; i < nx+2; i++)
     {
@@ -282,8 +271,7 @@ void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
       }
   //    cout << sum << endl;
       u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
-  //    cout << u(l, i) << endl;
-  //    myfile << l << " " <<  u(i, l) << " ";
+
     }
     if ((l == counter) || (l == nt-1))
     {
@@ -302,4 +290,85 @@ void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
   }
 
   return;
+}
+
+void JSolver(double e, double d, int n, double alpha, mat &u, mat rhs){
+        int maxIter = 1000;
+        double diff = 1.0;
+        int iter = 0;
+        double tol = 1E-10;
+        mat u_old;
+
+        while( iter < maxIter && diff > tol) {
+                diff = 0;
+                u_old = u;
+                for(int i = 1; i < n+1; i++) {
+                        for(int j = 1; j < n+1; j++) {
+                                u(i,j) = 1.0/d*(alpha*(u_old(i+1,j) + u_old(i,j+1) +
+                                                       u_old(i-1,j)+ u_old(i,j-1)) + rhs(i,j));
+                                diff += abs(u(i,j) - u_old(i,j));
+                        }
+                }
+                iter++;
+        }
+  //      cout << iter << endl;
+}
+
+void BESolver(int n, double alpha, int tmax, double dx, double dt){
+        mat u = zeros<mat>(n+2,n+2);  // Au = r
+
+        // Boundary conditions (u(0) set by zeros)
+        for(int i = 0; i < n+2; i++) {
+                u(n+1,i) = 1.0;
+        }
+
+        // Matrix elements of tridiagonal matrix
+        double e = -alpha;
+        double d = 1.0 + 4.0*alpha;
+
+        int saved_steps = 500;    // specify number of time steps to write to file
+        int save_interval = tmax/saved_steps;
+
+        mat A = zeros<mat>(n+2,n+2);
+        A.diag() += d; // center diagonal
+        A.diag(1) += e; // upper diagonal
+        A.diag(-1) += e; // lower diagonal
+
+        string DX = to_string(dx);
+        DX = DX.substr(0,5);
+        ofstream outfile;
+        outfile.open("2D_backward_dx=" + DX + ".txt");
+
+        // writing initial state to file
+        for(int i = 0; i < n+2; i++) {
+                for(int j = 0; j < n+2; j++) {
+                        outfile << u(i,j) << " ";
+                }
+                outfile << endl;
+        }
+
+        int counter = 0;
+        cout << tmax << endl;
+        for(int j = 0; j < tmax; j++) {
+                JSolver(e, d, n, alpha, u, u);
+
+                // Preserving boundary conditions
+                for(int i = 0; i < n+2; i++) {
+                        u(0,i) = 0;
+                        u(n+1,i) = 1.0;
+                }
+
+                // writing to file
+                if(j == counter || j == tmax-1) {
+                        for(int i = 0; i < n+2; i++) {
+                                for(int j = 0; j < n+2; j++) {
+                                        outfile << u(i,j) << " ";
+                                }
+                                outfile << endl;
+                        }
+                        counter += save_interval;
+                }
+        }
+        outfile.close();
+
 }

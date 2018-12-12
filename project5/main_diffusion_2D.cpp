@@ -7,7 +7,7 @@ int main(int argc, char const *argv[])
   int ny, nx, nt, add;
   int method = atoi(argv[1]);
   T = atof(argv[2]);
-  h = 0.005;
+  h = 0.01;
   alpha = 0.25;
   D = 1;                  // diffusion constant
   BC1 = 0; BC2 = 1;       // top and bottom of grid
@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
   dt = alpha*h*h;
   L = 1;
 //  double alpha = dt/(h*h);
-  nx = L/h -2;
+  nx = L/h - 2;
   ny = nx;
   nt = T/dt;
   int saved_steps = 500;    // specify number of time steps to write to file
@@ -44,6 +44,7 @@ int main(int argc, char const *argv[])
 
   // Time loop
   int counter = 0;    // counter used to avoid saving all values
+  cout << nt << endl;
   for (int l=0; l < nt; l++)
   {
     if (method == 0)    // Forward
@@ -64,7 +65,7 @@ int main(int argc, char const *argv[])
     }
 
     // Write results
-    if ((l == counter) || (l == nt-1))
+    if (l == counter || l == nt-1)
     {
       for (int i=0; i < nx+2; i++)
       {

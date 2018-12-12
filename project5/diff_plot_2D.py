@@ -3,8 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.animation as animation
 
-u = np.loadtxt('2D_forward_dx=0.010.txt')
-
+fe_u = np.loadtxt('2D_forward_dx=0.010.txt')
+be_u = np.loadtxt('2D_backward_dx=0.010.txt')
+#u = abs(fe_u - be_u)
+u = be_u
 print u.shape   # u[time, position]
 
 n = len(u[0,:])
@@ -22,14 +24,15 @@ for t in range(t_steps):
 
 # Plot specific points in time
 fig = plt.figure(figsize=(8,8))
-im = plt.imshow(mat[n], cmap=cm.coolwarm)
+im = plt.imshow(mat[-1], cmap=cm.coolwarm)
 cbar = plt.colorbar()
+#plt.clim(0,0.15)
 cbar.ax.get_yaxis().labelpad = 15
-cbar.ax.set_ylabel('$T(x, y)$', rotation=270, size=15)
+cbar.ax.set_ylabel('$T$', rotation=270, size=15)
 plt.xlabel('$x$', size=15); plt.ylabel('$y$', size=15)
-plt.title('Steady state temperature distribution\nin a %s x %s grid' % (n,n), size=15)
-
-plt.savefig('figures/T(x)_2D_dx=%s_steady.eps' % (dx))
-plt.savefig('figures/T(x)_2D_dx=%s_steady.pdf' % (dx))
+#plt.title('Difference between solutions from Forward Euler\nand Backward Euler schemes\nin a %s x %s grid' % (n,n), size=15)
+plt.title('Initial temperature distribution\nin a %s x %s grid' % (n,n), size=15)
+plt.savefig('figures/T(x,y)_2D_dx=%s_steady.eps' % (dx))
+plt.savefig('figures/T(x,y)_2D_dx=%s_steady.pdf' % (dx))
 
 plt.show()

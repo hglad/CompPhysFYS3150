@@ -43,6 +43,10 @@ void analytic_1D(int nx, int nt, double L, int saved_steps);
 
 void analytic_2D(int nx, int nt, double L, int saved_steps);
 
+void JSolver(double e, double d, int n, double alpha, mat &u, mat rhs);
+
+void BESolver(int n, double alpha, int tmax, double dx, double dt);
+
 //void write_sol(vec u, string filename);
 
 #endif /* DIFFUSION_H */
