@@ -24,13 +24,14 @@ for t in range(t_steps):
 
 fig = plt.figure(figsize=(8,8))
 im = plt.imshow(mat[0], cmap=cm.terrain, animated=True)
-# plt.clim(0,0.15)
+plt.clim(0,0.15)
 # Figure formatting
 cbar = plt.colorbar()
 cbar.ax.get_yaxis().labelpad = 15
 cbar.ax.set_ylabel('$\\Delta T$', rotation=270, size=15)
 plt.xlabel('$x$', size=15); plt.ylabel('$y$', size=15)
 #plt.title('Temperature distribution over\ntime in a %s x %s grid' % (n,n), size=15)
+plt.title('Difference between solutions from Forward Euler\nand Backward Euler schemes\nin a %s x %s grid' % (n,n), size=15)
 
 i = 0
 def updatefig(*args):
@@ -40,11 +41,11 @@ def updatefig(*args):
     else:
         i=0         # reset animation
     im.set_array(mat[i-1])
-    plt.title(" (dx = %s)\nTimestep: %s/%s" % (1./(n), i-1, t))
+#    plt.title(" (dx = %s)\nTimestep: %s/%s" % (1./(n), i-1, t))
     return im,
 
 save = True
-ani = animation.FuncAnimation(fig, updatefig, interval=1, blit=False, frames=int(t_steps/3))
+ani = animation.FuncAnimation(fig, updatefig, interval=10, blit=True, frames=int(t_steps/3))
 
 if save == True:
     # Set up formatting for the movie files
