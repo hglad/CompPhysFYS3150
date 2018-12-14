@@ -5,24 +5,32 @@ int main(int argc, char const *argv[])
   double alpha, D, h, dt, T, L, BC1, BC2;
   double a, c, b;
   int ny, nx, nt, add;
-  int method = atoi(argv[1]);
-  T = atof(argv[2]);
-  h = 0.01;
-  alpha = 0.25;
-  D = 1;                  // diffusion constant
-  BC1 = 0; BC2 = 1;       // top and bottom of grid
+  int method = 0;
+  T = 1;
+  h = atof(argv[1]);
+  alpha = atof(argv[2]);
+  //alpha = 0.25;
+
+  BC1 = 0; BC2 = 0;       // top and bottom of grid
 //  double dt = atof(argv[2]);
   dt = alpha*h*h;
+  cout << dt << endl;
   L = 1;
 //  double alpha = dt/(h*h);
   nx = L/h - 2;
   ny = nx;
   nt = T/dt;
-  int saved_steps = 500;    // specify number of time steps to write to file
+  int saved_steps = nt;    // specify number of time steps to write to file
   int save_interval = nt/saved_steps;
 
-  mat u = zeros(nx+2, ny+2);      // current step we want to solve for
-  mat y = zeros(nx+2, ny+2);      // values at previous step
+  int find_analytic = 1;
+  if (find_analytic == 1)
+  {
+    analytic_2D(nx, ny, nt, L, saved_steps);
+  }
+
+  mat u = initial_2D(nx, ny, L);     // current step we want to solve for
+  mat y = initial_2D(nx, ny, L);      // values at previous step
 
   string filename = init_method(method, 2, h, alpha, a, c, b);
 
@@ -43,27 +51,12 @@ int main(int argc, char const *argv[])
   }
 
   // Time loop
-  int counter = 0;    // counter used to avoid saving all values
+  int counter = 1;    // counter used to avoid saving all values
   cout << nt << endl;
-  for (int l=0; l < nt; l++)
+  for (int l=1  ; l < nt; l++)
   {
-    if (method == 0)    // Forward
-    {
-      forward_2D(alpha, D, u, nx, ny, BC1, BC2);
-    }
 
-    if (method == 1)    // Backward
-    {
-      backward_2D(a, c, b, alpha, u, y, nx, ny);
-      y = u;
-    }
-
-    if (method == 2)    // Crank
-    {
-      crank_2D(a, c, b, alpha, u, y, nx, ny);
-      y = u;
-    }
-
+    forward_2D(alpha, u, nx, ny, BC1, BC2);
     // Write results
     if (l == counter || l == nt-1)
     {

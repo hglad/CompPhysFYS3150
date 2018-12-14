@@ -23,9 +23,9 @@ void forward(double alpha, vec& u, int nx, double BC1, double BC2);
 
 void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx, double BC1, double BC2);
 
-void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx);
+void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx, double BC1, double BC2);
 
-void forward_2D(double alpha, double D, mat& u, int nx, int ny, double BC1, double BC2);
+void forward_2D(double alpha, mat& u, int nx, int ny, double BC1, double BC2);
 
 void backward_2D(double a, double c, double b, double alpha, mat& u, mat y, int nx, int ny);
 
@@ -39,9 +39,11 @@ void set_BCs_2D(mat& u, int nx, int ny, double BC1, double BC2);
 
 void tridiag(double a, double c, double b, vec y, vec& u, int nx);
 
+mat initial_2D(int nx, int ny, double L);
+
 void analytic_1D(int nx, int nt, double L, int saved_steps);
 
-void analytic_2D(int nx, int nt, double L, int saved_steps);
+void analytic_2D(int nx, int ny, int nt, double L, int saved_steps);
 
 void JSolver(double e, double d, int n, double alpha, mat &u, mat rhs);
 

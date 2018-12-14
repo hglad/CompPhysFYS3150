@@ -6,25 +6,27 @@ string init_method(int method, int dim, double dx, double alpha, double &a, doub
   string filename;
   string DX = to_string(dx);
   string DIM = to_string(dim);
+  string ALPHA = to_string(alpha);
+  ALPHA = ALPHA.substr(0,4);
   DX = DX.substr(0,5);
 
   if (method == 0)    // Forward
   {
-    filename = (DIM + "D_" + "forward_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "forward_dx=" + DX + "_alpha=" + ALPHA + ".txt");
   }
 
   if (method == 1)    // backward
   {
     a = c = -alpha;
     b = (1 + 2*alpha);
-    filename = (DIM + "D_" + "backward_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "backward_dx=" + DX + "_alpha=" + ALPHA + ".txt");
   }
 
   if (method == 2)    // crank
   {
     a = c = -alpha;
     b = (2 + 2*alpha);
-    filename = (DIM + "D_" + "crank_dx=" + DX + ".txt");
+    filename = (DIM + "D_" + "crank_dx=" + DX + "_alpha=" + ALPHA + ".txt");
   }
   return filename;
 }
@@ -40,33 +42,32 @@ void forward(double alpha, vec& u, int nx, double BC1, double BC2)
 
 void backward(double a, double c, double b, double alpha, vec& u, vec y, int nx, double BC1, double BC2)
 {
+  set_BCs_1D(y, nx, BC1, BC2);
   tridiag(a, c, b, y, u, nx);
   set_BCs_1D(u, nx, BC1, BC2);
 }
 
-void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx)
+void crank(double a, double c, double b, double alpha, vec& u, vec y, int nx, double BC1, double BC2)
 {
   for (int i=1; i < nx+1; i++)
   {
     y(i) = alpha*u(i-1) + (2 - 2*alpha)*u(i) + alpha*u(i+1);
   }
 
-  y(0) = 0;
-  y(nx+1) = 1;
+  set_BCs_1D(y, nx, BC1, BC2);
   //
   tridiag(a, c, b, y, u, nx);
 
-  u(0) = 0;
-  u(nx+1) = 1;
+  set_BCs_1D(u, nx, BC1, BC2);
 }
 
-void forward_2D(double alpha, double D, mat& u, int nx, int ny, double BC1, double BC2)
+void forward_2D(double alpha, mat& u, int nx, int ny, double BC1, double BC2)
 {
   for (int i=1; i < nx+1; i++)
   {
     for (int j=1; j < ny+1; j++)
     {
-      u(i,j) = (1 - 4*D*alpha)*u(i,j) + D*alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
+      u(i,j) = (1 - 4*alpha)*u(i,j) + alpha*(u(i+1, j) + u(i-1, j) + u(i, j+1) + u(i, j-1));
     }
   }
   set_BCs_2D(u, nx, ny, BC1, BC2);
@@ -124,6 +125,8 @@ void set_BCs_2D(mat& u, int nx, int ny, double BC1, double BC2)
   {
     u(0, j) = BC1;          // top
     u(nx+1, j) = BC2;       // bottom
+    u(j, 0) = BC1;          // top
+    u(j, ny+1) = BC2;       // bottom
   }
   return;
 }
@@ -152,6 +155,25 @@ void tridiag(double a, double c, double b, vec y, vec& u, int nx)
     u(i) = (y_tilde(i) - u(i+1)*c)/b_tilde(i);
   }
   return;
+}
+
+mat initial_2D(int nx, int ny, double L)
+{
+  mat u = zeros(nx+2, ny+2);
+  double x, y, dx, dy;
+  double pi = M_PI;
+  dx = L/(nx+1);
+  dy = dx;
+  for (int i=0; i < nx+2; i++)
+  {
+    x = i*dx;
+    for (int j=0; j < ny+2; j++)
+    {
+      y = j*dy;
+      u(i,j) = sin(pi*x) * sin(pi*y);
+    }
+  }
+  return u;
 }
 
 void analytic_1D(int nx, int nt, double L, int saved_steps)
@@ -222,25 +244,26 @@ void analytic_1D(int nx, int nt, double L, int saved_steps)
 void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
 {
   double dx = L/(nx+1);
+//  double dx = h;
+  double dy = dx;
   double BC1, BC2;
+  BC1 = BC2 = 0;
 
-  string DX = to_string(1./nx);
+  string DX = to_string(dx);
   DX = DX.substr(0,5);
-  string filename = ("1D_analytical_dx=" + DX + ".txt");
+  string filename = ("2D_analytical_dx=" + DX + ".txt");
   ofstream myfile;
   myfile.open(filename);
 
   double pi = M_PI;
-  int N = 1000;
 
-  //mat u = zeros(nt, nx+2);
-  mat u = zeros(nx+2, ny+2);
-  BC1 = 0; BC2 = 1;
+  mat u = initial_2D(nx, ny, L);
+  //BC1 = 0; BC2 = 1;
   set_BCs_2D(u, nx, ny, BC1, BC2);
-  double An, sum;
+
   double t_max = 1;
   double t;
-  double x;
+  double x, y;
 
   double dt = 1./nt;
   int save_interval = nt/saved_steps;
@@ -255,25 +278,30 @@ void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
   }
 
   int counter = 1;
+  int write;
   for (int l=1; l < nt; l++)
   {
-    t = (double) l/nt;
-    for (int i=0; i < nx+2; i++)
+    write = 0;
+    if (l == counter || l == nt-1)
     {
-      x = i*dx/L;
-      sum = 0;
-
-      for (int n=1; n < N+1; n++)
-      {
-        An = (2/L)*cos(pi*n)/(pi*n*L);
-
-        sum += An * exp(-pow(pi*n/L, 2)*t) * sin(n*pi*x/L);
-      }
-  //    cout << sum << endl;
-      u(l, i) = x + sum;       // i*dx/L: current x-value   u = x + v
-
+      write = 1;
     }
-    if ((l == counter) || (l == nt-1))
+
+    t = (double) l/nt;
+
+    for (int i=1; i < nx+1; i++)
+    {
+      x = i*dx;
+
+      for (int j=1; j < ny+1; j++)
+      {
+        y = j*dy;
+
+        u(i,j) = sin(pi*x) * sin(pi*y) * exp(-2*pi*pi*t);
+      }
+    }
+    //set_BCs_2D(u, nx, ny, BC1, BC2);
+    if (write == 1)
     {
       for (int i=0; i < nx+2; i++)
       {
@@ -286,6 +314,7 @@ void analytic_2D(int nx, int ny, int nt, double L, int saved_steps)
   //    cout << l << "/" << nt << endl;
       counter += save_interval;
     }
+
 
   }
 
@@ -315,18 +344,17 @@ void JSolver(double e, double d, int n, double alpha, mat &u, mat rhs){
 }
 
 void BESolver(int n, double alpha, int tmax, double dx, double dt){
-        mat u = zeros<mat>(n+2,n+2);  // Au = r
-
+        mat u = initial_2D(n, n, 1);  // Au = r
+        double BC1, BC2;
+        BC1 = BC2 = 0;
         // Boundary conditions (u(0) set by zeros)
-        for(int i = 0; i < n+2; i++) {
-                u(n+1,i) = 1.0;
-        }
+        set_BCs_2D(u, n, n, BC1, BC2);
 
         // Matrix elements of tridiagonal matrix
         double e = -alpha;
         double d = 1.0 + 4.0*alpha;
 
-        int saved_steps = 500;    // specify number of time steps to write to file
+        int saved_steps = tmax;    // specify number of time steps to write to file
         int save_interval = tmax/saved_steps;
 
         mat A = zeros<mat>(n+2,n+2);
@@ -336,8 +364,13 @@ void BESolver(int n, double alpha, int tmax, double dx, double dt){
 
         string DX = to_string(dx);
         DX = DX.substr(0,5);
+        string ALPHA = to_string(alpha);
+        ALPHA = ALPHA.substr(0,4);
+
+        string filename = ("2D_backward_dx=" + DX + "_alpha=" + ALPHA + ".txt");
+
         ofstream outfile;
-        outfile.open("2D_backward_dx=" + DX + ".txt");
+        outfile.open(filename);
 
         // writing initial state to file
         for(int i = 0; i < n+2; i++) {
@@ -347,16 +380,13 @@ void BESolver(int n, double alpha, int tmax, double dx, double dt){
                 outfile << endl;
         }
 
-        int counter = 0;
+        int counter = 1;
         cout << tmax << endl;
-        for(int j = 0; j < tmax; j++) {
+        for(int j = 1; j < tmax; j++) {
                 JSolver(e, d, n, alpha, u, u);
 
                 // Preserving boundary conditions
-                for(int i = 0; i < n+2; i++) {
-                        u(0,i) = 0;
-                        u(n+1,i) = 1.0;
-                }
+                set_BCs_2D(u, n, n, BC1, BC2);
 
                 // writing to file
                 if(j == counter || j == tmax-1) {
